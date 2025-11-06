@@ -2,113 +2,129 @@
 <html lang="fi">
 <head>
 <meta charset="UTF-8">
-<title>Väistämissääntöjen testi</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AM120 Väistöpeli</title>
 <style>
-body {font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:40px; color:#222;}
-.container {max-width:700px; margin:auto; background:white; padding:30px; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
-h1 {text-align:center; margin-bottom:20px;}
-.question {margin-bottom:25px;}
-button {background:#0078ff; color:white; border:none; padding:10px 20px; border-radius:4px; cursor:pointer;}
+body {font-family: Arial, sans-serif; background:#e5ecf6; margin:0; padding:0; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh;}
+.container {width:90%; max-width:400px; background:#fff; border-radius:10px; padding:20px; box-shadow:0 0 10px rgba(0,0,0,0.2); text-align:center;}
+.scene {height:200px; background:#d0e0ff; border-radius:8px; display:flex; align-items:center; justify-content:center; margin-bottom:20px; font-size:40px;}
+h2 {font-size:20px;}
+button {width:100%; margin:8px 0; padding:10px; border:none; border-radius:5px; background:#0078ff; color:#fff; font-size:16px; cursor:pointer;}
 button:hover {background:#005fcc;}
-.option {display:block; margin:8px 0; padding:8px; border:1px solid #ccc; border-radius:4px; cursor:pointer;}
-.option:hover {background:#eef;}
-.correct {background:#c8f7c5 !important; border-color:#3c3;}
-.wrong {background:#f9c0c0 !important; border-color:#c33;}
-.result {text-align:center; font-size:20px; font-weight:bold; margin-top:25px;}
+.correct {background:#41d641 !important;}
+.wrong {background:#e74c3c !important;}
+.result {font-size:20px; margin-top:15px;}
+.hidden {display:none;}
 </style>
 </head>
 <body>
 <div class="container">
-<h1>Väistämissääntöjen testi</h1>
-<div id="quiz"></div>
-<div class="result" id="result"></div>
-<button id="restart" style="display:none;">Uudestaan</button>
+<div id="scene" class="scene">🚗➕🚙</div>
+<h2 id="question">Kumpi väistää?</h2>
+<div id="buttons"></div>
+<div id="result" class="result hidden"></div>
+<button id="restart" class="hidden">Uudestaan</button>
 </div>
 <script>
 const questions = [
 {
-q: "Olet tulossa risteykseen, jossa ei ole merkkejä. Oikealta tulee auto. Kumpi väistää?",
-a: ["Sinä väistät oikealta tulevaa", "Oikealta tuleva väistää sinua", "Kumpikaan ei väistä"],
-c: 0
+scene:"🚗➡️🚙⬆️",
+q:"Risteys ilman merkkejä, toinen tulee oikealta.",
+a:["Väistän oikealta tulevaa","Ajan ensin","Molemmat pysähtyy"],
+c:0
 },
 {
-q: "Sinulla on kolmio, vasemmalta tulee auto ilman merkkiä. Kumpi väistää?",
-a: ["Sinä väistät", "Vasemmalta tuleva väistää", "Kumpikaan ei väistä"],
-c: 0
+scene:"⚠️🚗⬆️🚲➡️",
+q:"Sinulla on kolmio ja pyöräilijä tulee pyörätietä oikealta.",
+a:["Väistän pyöräilijää","Pyöräilijä väistää","Ajan ensin"],
+c:0
 },
 {
-q: "Käännyt vasemmalle, vastaan tulee auto suoraan. Kumpi väistää?",
-a: ["Sinä väistät", "Vastaantuleva väistää", "Ei kumpikaan"],
-c: 0
+scene:"🚗↖️🚙⬆️",
+q:"Olet kääntymässä vasemmalle ja vastaantuleva menee suoraan.",
+a:["Väistän vastaantulevaa","Ajan ensin","Molemmat kääntyy yhtä aikaa"],
+c:0
 },
 {
-q: "Tulet liikenneympyrään, jossa on jo auto sisällä. Kumpi väistää?",
-a: ["Sinä väistät ympyrässä olevaa", "Ympyrässä oleva väistää sinua", "Ei väistämistä"],
-c: 0
+scene:"🏠🚗➡️🛣️",
+q:"Tulet pihasta tielle.",
+a:["Väistän kaikkea liikennettä","Tien auto väistää","Ajan ensin jos ehdin"],
+c:0
 },
 {
-q: "Tulet pihasta tielle. Kumpi väistää?",
-a: ["Sinä väistät kaikkea liikennettä", "Tiellä ajavat väistävät sinua", "Ei väistämistä"],
-c: 0
+scene:"🔄🚗➡️🚙🔁",
+q:"Tulet liikenneympyrään, jossa on jo auto sisällä.",
+a:["Väistän ympyrässä olevaa","Ajan ensin","Kumpikaan ei väistä"],
+c:0
 },
 {
-q: "Sinulla on vihreä nuolivalo vasemmalle, vastaantuleva ajaa suoraan vihreällä pallovalolla. Kumpi väistää?",
-a: ["Sinä väistät", "Vastaantuleva väistää", "Ei kumpikaan, valot ohjaavat suunnat erikseen"],
-c: 2
+scene:"🚦⬅️🟢",
+q:"Vihreä nuolivalo vasemmalle, vastaan tuleva ajaa suoraan.",
+a:["Ajan ilman väistämistä","Väistän silti","Odotan varmuuden vuoksi"],
+c:0
 },
 {
-q: "Kääntyessäsi oikealle väistätkö jalankulkijaa, joka on suojatiellä sinun edessä?",
-a: ["Kyllä", "En", "Vain jos hän on juoksemassa"],
-c: 0
+scene:"🚗➡️🚶‍♂️⬜",
+q:"Käännyt oikealle ja suojatiellä on jalankulkija.",
+a:["Väistän jalankulkijaa","Jalankulkija väistää","Ajan ensin"],
+c:0
 },
 {
-q: "Polkupyöräilijä ajaa pyörätietä, ja sinulla on kolmio. Kumpi väistää?",
-a: ["Sinä väistät", "Pyöräilijä väistää", "Ei kumpikaan"],
-c: 0
+scene:"🚗⬆️🚙⬅️⚠️",
+q:"Sinulla kolmio, vasemmalta tulevalla ei merkkiä.",
+a:["Väistän","Ajan ensin","Vain jos tulee nopeasti"],
+c:0
 }
 ];
 
-let current = 0, score = 0;
-const quiz = document.getElementById("quiz");
-const result = document.getElementById("result");
-const restart = document.getElementById("restart");
+let current=0,score=0;
+const scene=document.getElementById("scene");
+const qEl=document.getElementById("question");
+const buttons=document.getElementById("buttons");
+const result=document.getElementById("result");
+const restart=document.getElementById("restart");
 
-function loadQuestion() {
-quiz.innerHTML = "";
-if (current < questions.length) {
-const q = questions[current];
-const qDiv = document.createElement("div");
-qDiv.className = "question";
-qDiv.innerHTML = `<h3>${current+1}. ${q.q}</h3>`;
+function loadQuestion(){
+result.classList.add("hidden");
+restart.classList.add("hidden");
+buttons.innerHTML="";
+if(current<questions.length){
+const q=questions[current];
+scene.textContent=q.scene;
+qEl.textContent=q.q;
 q.a.forEach((opt,i)=>{
-const btn=document.createElement("div");
-btn.className="option";
-btn.textContent=opt;
-btn.onclick=()=>checkAnswer(i,btn);
-qDiv.appendChild(btn);
+const b=document.createElement("button");
+b.textContent=opt;
+b.onclick=()=>check(i,b);
+buttons.appendChild(b);
 });
-quiz.appendChild(qDiv);
-} else {
-quiz.innerHTML = "";
-result.innerHTML = `Sait ${score} / ${questions.length} oikein`;
-restart.style.display = "inline-block";
+}else{
+endGame();
 }
 }
-
-function checkAnswer(i,btn) {
-const options=document.querySelectorAll(".option");
-options.forEach(o=>o.onclick=null);
-if (i===questions[current].c) {
-btn.classList.add("correct");
-score++;
-} else {
-btn.classList.add("wrong");
-options[questions[current].c].classList.add("correct");
+function check(i,b){
+const opts=document.querySelectorAll("button");
+opts.forEach(o=>o.onclick=null);
+if(i===questions[current].c){
+b.classList.add("correct");score++;
+}else{
+b.classList.add("wrong");
+opts[questions[current].c].classList.add("correct");
 }
-setTimeout(()=>{current++;loadQuestion();},1000);
+setTimeout(()=>{current++;loadQuestion();},800);
 }
-
-restart.onclick=()=>{current=0;score=0;result.innerHTML="";restart.style.display="none";loadQuestion();};
+function endGame(){
+scene.textContent="🏁";
+qEl.textContent="Peli ohi!";
+buttons.innerHTML="";
+let title="Aloittelija 🚗";
+if(score>5) title="Liikennepro 🏎️";
+if(score===questions.length) title="Teoriakuningas 👑";
+result.textContent=`Sait ${score}/${questions.length} oikein — ${title}`;
+result.classList.remove("hidden");
+restart.classList.remove("hidden");
+}
+restart.onclick=()=>{current=0;score=0;loadQuestion();};
 loadQuestion();
 </script>
 </body>
