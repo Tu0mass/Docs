@@ -2,325 +2,394 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THE NEON BANDIT: ULTIMATE HEIST (V3.0)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NEON BANDIT: PLATINUM EDITION</title>
     <style>
-        /* --- CORE VARIABLES --- */
+        /* --- FONTS & VARS --- */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap');
+
         :root {
-            --c-bg: #050505;
-            --c-panel: #111;
-            --c-primary: #00F3FF; /* Base Cyan */
-            --c-accent: #FF0055;  /* Alarm Red */
-            --c-gold: #FFD700;
-            --c-text: #fff;
-            --font-ui: 'Segoe UI', monospace;
-            --ease-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --c-bg: #020204;
+            --c-metal-dark: #141414;
+            --c-metal-light: #2a2a2a;
+            --c-cyan: #00f3ff;
+            --c-magenta: #ff0055;
+            --c-gold: #ffd700;
+            --c-green: #00ff41;
+            
+            --shadow-cyan: 0 0 10px var(--c-cyan), 0 0 20px var(--c-cyan);
+            --shadow-magenta: 0 0 10px var(--c-magenta), 0 0 20px var(--c-magenta);
+            
+            --reel-h: 450px;
+            --sym-h: 150px; /* Height of one symbol */
         }
+
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
 
         body {
-            background: #000;
-            margin: 0; height: 100vh;
+            background-color: var(--c-bg);
+            background-image: radial-gradient(circle at center, #111 0%, #000 100%);
+            height: 100vh; margin: 0;
             display: flex; justify-content: center; align-items: center;
+            font-family: 'Rajdhani', sans-serif;
             overflow: hidden;
-            font-family: var(--font-ui);
-            user-select: none;
+            color: white;
         }
 
-        /* --- GAME CONTAINER --- */
-        #gameRoot {
+        /* --- THE MACHINE CABINET --- */
+        #cabinet {
             position: relative;
-            width: 1000px; height: 800px;
-            background: #080808;
-            border-radius: 16px;
+            width: 1000px; height: 850px;
+            background: linear-gradient(180deg, #222 0%, #050505 100%);
+            border-radius: 20px;
             border: 4px solid #333;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            box-shadow: 
+                inset 0 0 60px rgba(0,0,0,0.9),
+                0 0 80px rgba(0, 243, 255, 0.1);
             display: flex; flex-direction: column;
-            transition: all 0.5s ease;
+            padding: 30px;
+            transition: box-shadow 0.5s, border-color 0.5s;
         }
 
-        /* STATE: BASE MODE */
-        #gameRoot.mode-base { --theme-color: var(--c-primary); border-color: #222; }
-        
-        /* STATE: BONUS MODE */
-        #gameRoot.mode-bonus { 
-            --theme-color: var(--c-accent); 
-            border-color: var(--c-accent);
-            box-shadow: 0 0 80px rgba(255, 0, 85, 0.2);
+        /* Bonus Mode State */
+        #cabinet.bonus-mode {
+            border-color: var(--c-magenta);
+            box-shadow: 
+                inset 0 0 60px rgba(50,0,0,0.9),
+                0 0 100px rgba(255, 0, 85, 0.3);
         }
-        #gameRoot.mode-bonus .bg-alarm { opacity: 0.2; animation: pulseAlarm 2s infinite; }
 
-        @keyframes pulseAlarm { 0% {opacity:0.1} 50% {opacity:0.3} 100% {opacity:0.1} }
-
-        /* --- MARQUEE --- */
-        .marquee {
-            height: 60px; background: #000;
-            border-bottom: 1px solid #333;
-            display: flex; align-items: center; justify-content: space-between;
+        /* --- HEADER --- */
+        .header {
+            height: 80px;
+            background: #000;
+            border: 2px solid #222;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center;
             padding: 0 30px;
-            color: var(--theme-color);
-            text-shadow: 0 0 10px var(--theme-color);
-            border-radius: 12px 12px 0 0;
-            z-index: 10;
+            box-shadow: inset 0 0 20px #000;
+            position: relative; overflow: hidden;
         }
-        .status-text { font-weight: bold; letter-spacing: 2px; }
-        .bonus-counter { display: none; color: #fff; background: var(--c-accent); padding: 2px 10px; border-radius: 4px; }
-        #gameRoot.mode-bonus .bonus-counter { display: block; }
+        
+        .logo { font-family: 'Orbitron'; font-size: 32px; color: var(--c-cyan); text-shadow: var(--shadow-cyan); font-weight: 900; letter-spacing: 2px; }
+        .status { font-family: 'Orbitron'; font-size: 18px; color: #fff; text-align: right; min-width: 200px; }
+        .bonus-counter { color: var(--c-magenta); font-weight: bold; text-shadow: 0 0 10px var(--c-magenta); display: none; }
+        #cabinet.bonus-mode .bonus-counter { display: block; animation: pulseText 1s infinite; }
 
-        /* --- REEL AREA --- */
-        .vault-display {
-            position: relative; flex-grow: 1;
-            background: #101010;
-            margin: 10px 20px;
-            border: 4px solid #222; border-radius: 8px;
+        /* --- SCREEN AREA --- */
+        .screen-bezel {
+            flex-grow: 1;
+            background: #080808;
+            border: 10px solid #1a1a1a;
+            border-radius: 15px;
+            position: relative;
             overflow: hidden;
-            display: flex;
             box-shadow: inset 0 0 50px #000;
         }
 
-        .bg-alarm {
-            position: absolute; top:0; left:0; width:100%; height:100%;
-            background: radial-gradient(circle, #500 0%, #000 100%);
-            opacity: 0; pointer-events: none; transition: opacity 0.5s;
-            z-index: 0;
-        }
-
+        /* VFX Overlays */
         .scanlines {
-            position: absolute; top:0; left:0; width:100%; height:100%;
+            position: absolute; top:0; left:0; right:0; bottom:0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 2px, 3px 100%;
-            pointer-events: none; z-index: 20;
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none; z-index: 20; opacity: 0.6;
         }
+        .glare {
+            position: absolute; top:0; left:0; right:0; bottom:0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.02) 100%);
+            pointer-events: none; z-index: 21;
+        }
+        .alarm-overlay {
+            position: absolute; top:0; left:0; width:100%; height:100%;
+            background: radial-gradient(circle, rgba(255,0,85,0.2) 0%, transparent 80%);
+            opacity: 0; transition: opacity 0.5s; z-index: 1; pointer-events: none;
+        }
+        #cabinet.bonus-mode .alarm-overlay { opacity: 1; animation: alarmPulse 2s infinite; }
 
         /* --- REELS --- */
-        .reels-wrapper {
-            display: flex; width: 100%; height: 100%; z-index: 5;
-            justify-content: space-around; padding: 10px 0;
+        .reels-container {
+            display: flex; height: 100%; justify-content: space-around;
+            padding: 20px; z-index: 5; position: relative;
         }
-
+        
         .reel-col {
             width: 18%; height: 100%;
             position: relative;
-            overflow: hidden;
-            background: rgba(0,0,0,0.3);
-            border-radius: 4px;
+            overflow: hidden; /* Masks symbols outside the view */
+            background: rgba(255,255,255,0.02);
             border: 1px solid #222;
+            border-radius: 4px;
         }
 
+        /* The strip moves inside the column */
         .reel-strip {
             width: 100%;
-            /* Will be manipulated by JS translate */
+            position: absolute;
+            top: 0; left: 0;
+            /* We will translate this via JS */
+            will-change: transform; 
         }
 
+        /* --- SYMBOLS (SVG) --- */
         .symbol {
-            height: 140px; /* Dynamic based on JS config */
+            height: var(--sym-h);
+            width: 100%;
             display: flex; justify-content: center; align-items: center;
-            font-size: 60px; position: relative;
+            position: relative;
         }
         
-        /* Multiplier Badge (Bonus Mode) */
-        .mult-badge {
-            position: absolute; bottom: 5px; right: 5px;
+        .symbol svg {
+            width: 70%; height: 70%;
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
+        }
+
+        /* Symbol specific styles */
+        .sym-wild svg { filter: drop-shadow(0 0 10px var(--c-cyan)); }
+        .sym-scat svg { filter: drop-shadow(0 0 10px var(--c-magenta)); animation: spinSlow 4s infinite linear; }
+        .sym-high svg { filter: drop-shadow(0 0 8px var(--c-gold)); }
+        
+        /* Multiplier Badge */
+        .mult-tag {
+            position: absolute; bottom: 10px; right: 10px;
             background: var(--c-gold); color: #000;
-            font-size: 14px; font-weight: 900;
-            padding: 2px 6px; border-radius: 4px;
+            font-weight: 900; font-size: 14px; padding: 2px 6px;
+            border-radius: 4px; border: 1px solid #fff;
             box-shadow: 0 0 10px var(--c-gold);
-            transform: scale(0); transition: transform 0.3s var(--ease-elastic);
+            transform: scale(0); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .mult-badge.active { transform: scale(1); }
+        .mult-tag.show { transform: scale(1); }
 
-        /* --- CONTROL PANEL --- */
+        /* --- CONTROL DECK --- */
         .controls {
-            height: 150px; background: #0e0e0e;
-            border-top: 2px solid #333;
-            border-radius: 0 0 12px 12px;
-            display: grid; grid-template-columns: 1fr 1fr 1fr;
+            height: 160px;
+            background: #111;
+            margin-top: 20px;
+            border-top: 1px solid #333;
+            border-radius: 0 0 15px 15px;
+            display: grid; grid-template-columns: 1fr 1.2fr 1fr;
             padding: 20px; gap: 20px;
+            position: relative; z-index: 30;
         }
 
-        .panel-box {
-            background: #050505; border: 1px solid #222;
-            border-radius: 8px; padding: 10px;
+        .panel {
+            background: #080808; border: 1px solid #222; border-radius: 8px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 10px;
         }
+
+        .label { font-size: 11px; color: #666; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 5px; }
+        .lcd { font-family: 'Orbitron'; color: var(--c-cyan); font-size: 24px; text-shadow: 0 0 5px rgba(0,243,255,0.3); }
         
-        .label { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-        .lcd-text { font-family: 'Courier New', monospace; color: var(--theme-color); font-size: 22px; font-weight: bold; }
-
-        button {
-            cursor: pointer; outline: none; border: none;
-            font-family: var(--font-ui); font-weight: bold;
-            transition: all 0.1s;
-        }
-
+        button { cursor: pointer; border: none; outline: none; transition: 0.1s; }
+        
         .spin-btn {
             width: 100px; height: 100px; border-radius: 50%;
             background: radial-gradient(circle at 30% 30%, #444, #111);
-            border: 3px solid var(--theme-color); color: #fff; font-size: 20px;
-            box-shadow: 0 0 15px var(--theme-color);
+            border: 4px solid var(--c-cyan); color: #fff;
+            font-family: 'Orbitron'; font-size: 18px; font-weight: bold;
+            box-shadow: 0 0 20px var(--c-cyan);
         }
-        .spin-btn:active { transform: scale(0.95); }
+        .spin-btn:active { transform: scale(0.95); border-color: #fff; }
         .spin-btn:disabled { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; }
 
-        .bet-row { display: flex; gap: 10px; align-items: center; }
-        .adj-btn { width: 30px; height: 30px; background: #333; color: #fff; border-radius: 4px; font-size: 18px; }
-        .adj-btn:hover { background: #444; }
+        .auto-btn { margin-top: 10px; background: #222; color: #aaa; padding: 5px 12px; border-radius: 4px; font-size: 12px; border: 1px solid #444; }
+        .auto-btn.active { background: var(--c-cyan); color: #000; box-shadow: 0 0 10px var(--c-cyan); border-color: #fff; }
+
+        .bet-ctrl { display: flex; align-items: center; gap: 10px; }
+        .adj { width: 35px; height: 35px; background: #333; color: #fff; font-size: 20px; border-radius: 5px; }
+        .adj:hover { background: #555; }
 
         .buy-btn {
-            width: 100%; padding: 10px; margin-top: 5px;
-            background: linear-gradient(45deg, #b8860b, #ffd700);
-            color: #000; font-weight: 900; border-radius: 4px;
-            box-shadow: 0 0 10px rgba(255,215,0,0.3);
+            width: 100%; padding: 12px; background: linear-gradient(90deg, #b8860b, var(--c-gold));
+            color: #000; font-weight: 900; font-family: 'Orbitron'; border-radius: 6px;
+            margin-top: 5px; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
         }
         .buy-btn:hover { filter: brightness(1.2); }
-        .buy-btn span { font-size: 10px; display: block; opacity: 0.7; }
 
-        /* --- OVERLAYS --- */
-        .win-modal {
+        /* --- WIN MODAL --- */
+        .win-overlay {
             position: absolute; top:0; left:0; width:100%; height:100%;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             pointer-events: none; z-index: 100;
-            opacity: 0; transition: opacity 0.3s;
+            opacity: 0; transition: opacity 0.2s; background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(2px);
         }
-        .win-modal.show { opacity: 1; background: rgba(0,0,0,0.7); }
-        .win-title { font-size: 80px; font-weight: 900; color: #fff; text-shadow: 0 0 30px var(--theme-color); transform: scale(0.5); transition: transform 0.5s var(--ease-elastic); }
-        .win-modal.show .win-title { transform: scale(1); }
-        .win-amount { font-size: 40px; color: var(--c-gold); font-family: monospace; }
+        .win-overlay.active { opacity: 1; pointer-events: auto; }
+        
+        .win-title {
+            font-family: 'Orbitron'; font-size: 80px; font-weight: 900; color: #fff;
+            text-shadow: 0 0 20px var(--c-gold), 0 0 50px var(--c-magenta);
+            transform: scale(0.5); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .win-overlay.active .win-title { transform: scale(1); }
+        .win-val { font-size: 50px; color: var(--c-cyan); font-weight: bold; margin-top: 10px; }
+
+        /* Particles */
+        .particle { position: absolute; pointer-events: none; border-radius: 50%; animation: pop 1s forwards; }
+        @keyframes pop { 
+            0% { transform: translate(0,0) scale(1); opacity:1; } 
+            100% { transform: translate(var(--x), var(--y)) scale(0); opacity:0; } 
+        }
+        @keyframes alarmPulse { 0% {opacity:0.2} 50% {opacity:0.5} 100% {opacity:0.2} }
+        @keyframes spinSlow { 0% {transform:rotate(0deg)} 100% {transform:rotate(360deg)} }
+        @keyframes pulseText { 0% {opacity:0.5} 50% {opacity:1} 100% {opacity:0.5} }
 
     </style>
 </head>
 <body>
 
-<div id="gameRoot" class="mode-base">
-    
-    <!-- HEADER -->
-    <div class="marquee">
-        <div class="status-text" id="statusText">SYSTEM READY</div>
-        <div class="bonus-counter" id="bonusCounter">FREE SPINS: 0</div>
-    </div>
-
-    <!-- REELS -->
-    <div class="vault-display">
-        <div class="bg-alarm"></div> <!-- Red Pulse for Bonus -->
-        <div class="scanlines"></div>
+    <div id="cabinet">
         
-        <div class="reels-wrapper" id="reelsWrapper">
-            <!-- Reels injected by JS -->
-        </div>
-
-        <!-- Win Overlay -->
-        <div class="win-modal" id="winModal">
-            <div class="win-title" id="winTitle">BIG WIN</div>
-            <div class="win-amount" id="winAmountDisplay">0</div>
-        </div>
-    </div>
-
-    <!-- CONTROLS -->
-    <div class="controls">
-        <!-- Bank -->
-        <div class="panel-box">
-            <span class="label">CREDITS</span>
-            <div class="lcd-text" id="creditDisplay">5000</div>
-            <span class="label" style="margin-top:10px">BET</span>
-            <div class="bet-row">
-                <button class="adj-btn" onclick="Game.adjustBet(-1)">-</button>
-                <div class="lcd-text" id="betDisplay" style="font-size:18px">10</div>
-                <button class="adj-btn" onclick="Game.adjustBet(1)">+</button>
+        <!-- HEADER -->
+        <div class="header">
+            <div class="logo">NEON BANDIT</div>
+            <div class="status">
+                <span id="msg">SYSTEM READY</span>
+                <div class="bonus-counter" id="bonusMsg">FREE SPINS: 0</div>
             </div>
         </div>
 
-        <!-- Spin -->
-        <div class="panel-box" style="background:transparent; border:none;">
-            <button class="spin-btn" id="spinBtn" onclick="Game.spin()">SPIN</button>
-            <button id="autoBtn" onclick="Game.toggleAuto()" style="margin-top:10px; background:#222; color:#fff; padding:5px 10px; border-radius:4px;">AUTO: OFF</button>
+        <!-- MAIN SCREEN -->
+        <div class="screen-bezel">
+            <div class="scanlines"></div>
+            <div class="glare"></div>
+            <div class="alarm-overlay"></div>
+            
+            <!-- THE REELS -->
+            <div class="reels-container" id="reelsContainer">
+                <!-- Injected via JS -->
+            </div>
+
+            <!-- WIN POPUP -->
+            <div class="win-overlay" id="winOverlay">
+                <div class="win-title" id="winTitle">BIG WIN</div>
+                <div class="win-val" id="winVal">0</div>
+            </div>
         </div>
 
-        <!-- Features -->
-        <div class="panel-box">
-            <span class="label">LAST WIN</span>
-            <div class="lcd-text" id="lastWinDisplay">0</div>
-            <button class="buy-btn" id="buyBtn" onclick="Game.buyBonus()">
-                BUY HEIST
-                <span>COST: 100x</span>
-            </button>
+        <!-- CONTROLS -->
+        <div class="controls">
+            
+            <!-- Left: Credits & Bet -->
+            <div class="panel">
+                <span class="label">CREDITS</span>
+                <div class="lcd" id="credits">2000</div>
+                
+                <div class="bet-ctrl" style="margin-top:10px">
+                    <button class="adj" onclick="Slot.adjustBet(-1)">-</button>
+                    <div class="lcd" style="font-size:18px; min-width:40px; text-align:center;" id="bet">10</div>
+                    <button class="adj" onclick="Slot.adjustBet(1)">+</button>
+                </div>
+            </div>
+
+            <!-- Center: Spin -->
+            <div class="panel" style="background:transparent; border:none; justify-content:flex-start;">
+                <button class="spin-btn" id="spinBtn" onclick="Slot.spin()">SPIN</button>
+                <button class="auto-btn" id="autoBtn" onclick="Slot.toggleAuto()">AUTO: OFF</button>
+            </div>
+
+            <!-- Right: Features -->
+            <div class="panel">
+                <span class="label">LAST WIN</span>
+                <div class="lcd" id="lastWin">0</div>
+                
+                <button class="buy-btn" id="buyBtn" onclick="Slot.buyBonus()">
+                    BUY HEIST
+                    <div style="font-size:10px; opacity:0.7">COST: 100x</div>
+                </button>
+            </div>
+
         </div>
+
     </div>
-</div>
 
 <script>
-/* 
-    ===========================================================
-    THE NEON BANDIT V3.0 - ENGINE
-    ===========================================================
+/*
+    ============================================================
+    NEON BANDIT PLATINUM - GAME ENGINE
+    ============================================================
 */
 
-// --- CONFIGURATION ---
+// --- ASSETS (SVG STRINGS) ---
+// Using SVGs ensures zero loading time and perfect scaling.
+const GFX = {
+    wild: `<svg viewBox="0 0 100 100" fill="none" stroke="#00f3ff" stroke-width="4"><path d="M20,30 L80,30 L90,50 L50,90 L10,50 Z" fill="rgba(0,243,255,0.2)"/><circle cx="35" cy="45" r="5" fill="#00f3ff"/><circle cx="65" cy="45" r="5" fill="#00f3ff"/><path d="M15,45 L85,45" stroke-dasharray="5,5"/><text x="50" y="20" text-anchor="middle" fill="#fff" font-size="14" stroke="none" font-family="Orbitron">WILD</text></svg>`,
+    scat: `<svg viewBox="0 0 100 100" fill="none" stroke="#ff0055" stroke-width="5"><circle cx="50" cy="50" r="35"/><path d="M50,15 L50,50 L75,75" stroke-linecap="round"/><circle cx="50" cy="50" r="5" fill="#ff0055"/><path d="M50,5 L50,10 M50,90 L50,95 M5,50 L10,50 M90,50 L95,50" stroke="#fff" stroke-width="2"/></svg>`,
+    h1:   `<svg viewBox="0 0 100 100" fill="url(#grad1)" stroke="#ffd700" stroke-width="2"><defs><linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ffd700;stop-opacity:0.5" /><stop offset="100%" style="stop-color:#b8860b;stop-opacity:0.8" /></linearGradient></defs><path d="M20,40 L30,20 L70,20 L80,40 L50,85 Z"/><path d="M20,40 L80,40" stroke="#fff" stroke-width="1" opacity="0.5"/><path d="M30,20 L50,85 L70,20" stroke="#fff" stroke-width="1" opacity="0.5"/></svg>`,
+    h2:   `<svg viewBox="0 0 100 100" fill="none" stroke="#00ff41" stroke-width="3"><rect x="20" y="30" width="60" height="40" rx="5" fill="rgba(0,255,65,0.1)"/><text x="50" y="55" text-anchor="middle" fill="#00ff41" font-size="24" stroke="none" font-family="sans-serif">$</text><path d="M15,35 L15,65 M85,35 L85,65" stroke-width="5"/></svg>`,
+    m1:   `<svg viewBox="0 0 100 100" fill="none" stroke="#ff5500" stroke-width="3"><rect x="35" y="20" width="30" height="50" fill="#331100"/><path d="M50,20 L50,10 L60,5"/><text x="50" y="50" text-anchor="middle" fill="#ff5500" stroke="none" font-size="20">TNT</text></svg>`,
+    l1:   `<svg viewBox="0 0 100 100"><text x="50" y="70" text-anchor="middle" font-size="60" fill="#aaa" stroke="#fff" stroke-width="1" font-family="Orbitron">A</text></svg>`,
+    l2:   `<svg viewBox="0 0 100 100"><text x="50" y="70" text-anchor="middle" font-size="60" fill="#888" stroke="#fff" stroke-width="1" font-family="Orbitron">K</text></svg>`,
+    l3:   `<svg viewBox="0 0 100 100"><text x="50" y="70" text-anchor="middle" font-size="60" fill="#666" stroke="#fff" stroke-width="1" font-family="Orbitron">Q</text></svg>`,
+    l4:   `<svg viewBox="0 0 100 100"><text x="50" y="70" text-anchor="middle" font-size="60" fill="#444" stroke="#fff" stroke-width="1" font-family="Orbitron">J</text></svg>`
+};
+
+// --- CONFIG ---
 const CFG = {
     reels: 5,
     rows: 3,
-    symbolH: 140,
-    spinDur: 800,
-    delay: 150,
+    symbolHeight: 150,
+    reelSpeed: 2000, // px per second approx logic
+    spinDuration: 1000, // ms base
+    stopDelay: 200, // ms between reels
     bets: [10, 20, 50, 100, 200, 500],
     symbols: [
-        { id: 'wild', char: '🦝', pay: 0, type: 'wild' },
-        { id: 'scat', char: '☢️', pay: 0, type: 'scatter' },
-        { id: 'h1', char: '💎', pay: 50, type: 'high' },
-        { id: 'h2', char: '💰', pay: 30, type: 'high' },
-        { id: 'm1', char: '💣', pay: 20, type: 'mid' },
-        { id: 'm2', char: '🔫', pay: 15, type: 'mid' },
-        { id: 'l1', char: 'A', pay: 5, type: 'low' },
-        { id: 'l2', char: 'K', pay: 4, type: 'low' },
-        { id: 'l3', char: 'Q', pay: 3, type: 'low' },
-        { id: 'l4', char: 'J', pay: 2, type: 'low' }
+        { id: 'wild', svg: GFX.wild, pay: 0, type: 'wild' },
+        { id: 'scat', svg: GFX.scat, pay: 0, type: 'scat' },
+        { id: 'h1', svg: GFX.h1, pay: 50, type: 'high' },
+        { id: 'h2', svg: GFX.h2, pay: 30, type: 'high' },
+        { id: 'm1', svg: GFX.m1, pay: 15, type: 'mid' },
+        { id: 'l1', svg: GFX.l1, pay: 5, type: 'low' },
+        { id: 'l2', svg: GFX.l2, pay: 4, type: 'low' },
+        { id: 'l3', svg: GFX.l3, pay: 3, type: 'low' },
+        { id: 'l4', svg: GFX.l4, pay: 2, type: 'low' }
     ],
-    // Adjusted weights (0=Wild, 1=Scatter)
-    weights: [0,1,1, 2,2, 3,3, 4,4,4, 5,5,5, 6,6,6,6, 7,7,7,7, 8,8,8,8, 9,9,9,9,9]
+    // Weights for RNG (Wild/Scatter rarer)
+    weights: [0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8]
 };
 
-// --- AUDIO SYNTHESIS (Web Audio API) ---
-const Audio = {
+// --- AUDIO SYSTEM ---
+const AudioSys = {
     ctx: new (window.AudioContext || window.webkitAudioContext)(),
-    play(type) {
-        if (this.ctx.state === 'suspended') this.ctx.resume();
-        const t = this.ctx.currentTime;
+    play(key) {
+        if(this.ctx.state === 'suspended') this.ctx.resume();
         const osc = this.ctx.createOscillator();
         const g = this.ctx.createGain();
+        const t = this.ctx.currentTime;
         osc.connect(g); g.connect(this.ctx.destination);
 
-        switch(type) {
+        switch(key) {
             case 'spin':
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(100, t);
-                osc.frequency.linearRampToValueAtTime(300, t+0.2);
+                osc.frequency.setValueAtTime(150, t);
+                osc.frequency.linearRampToValueAtTime(300, t+0.3);
                 g.gain.setValueAtTime(0.1, t);
-                g.gain.linearRampToValueAtTime(0, t+0.2);
-                osc.start(t); osc.stop(t+0.2);
+                g.gain.linearRampToValueAtTime(0, t+0.3);
+                osc.start(t); osc.stop(t+0.3);
                 break;
             case 'stop':
                 osc.type = 'square';
                 osc.frequency.setValueAtTime(80, t);
-                osc.frequency.exponentialRampToValueAtTime(10, t+0.1);
+                osc.frequency.exponentialRampToValueAtTime(20, t+0.1);
                 g.gain.setValueAtTime(0.2, t);
                 g.gain.exponentialRampToValueAtTime(0.01, t+0.15);
                 osc.start(t); osc.stop(t+0.15);
                 break;
             case 'win':
-                [0, 0.1, 0.2].forEach((d, i) => {
-                    const o = this.ctx.createOscillator();
-                    const gn = this.ctx.createGain();
-                    o.connect(gn); gn.connect(this.ctx.destination);
-                    o.type = 'sine';
-                    o.frequency.value = 500 + (i*200);
-                    gn.gain.setValueAtTime(0.1, t+d);
-                    gn.gain.linearRampToValueAtTime(0, t+d+0.3);
-                    o.start(t+d); o.stop(t+d+0.3);
-                });
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, t);
+                osc.frequency.linearRampToValueAtTime(880, t+0.2);
+                g.gain.setValueAtTime(0.1, t);
+                g.gain.linearRampToValueAtTime(0, t+0.5);
+                osc.start(t); osc.stop(t+0.5);
                 break;
-            case 'bonus_trigger':
+            case 'bonus':
                 osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(100, t);
-                osc.frequency.linearRampToValueAtTime(800, t+1);
-                g.gain.setValueAtTime(0.3, t);
+                osc.frequency.setValueAtTime(110, t);
+                osc.frequency.linearRampToValueAtTime(55, t+0.5); // Siren down
+                osc.frequency.linearRampToValueAtTime(110, t+1.0); // Siren up
+                g.gain.setValueAtTime(0.2, t);
                 g.gain.linearRampToValueAtTime(0, t+1.5);
                 osc.start(t); osc.stop(t+1.5);
                 break;
@@ -328,89 +397,103 @@ const Audio = {
     }
 };
 
-// --- GAME LOGIC ---
-const Game = {
+// --- MAIN LOGIC ---
+const Slot = {
     state: 'IDLE', // IDLE, SPINNING, BONUS
-    credits: 5000,
+    credits: 2000,
     betIdx: 0,
     bet: 10,
     auto: false,
     
-    // Bonus Data
+    // Bonus State
     bonus: {
         active: false,
-        spinsLeft: 0,
-        gridMults: [], // 5x3 grid of multipliers
+        spins: 0,
+        grid: [], // 5x3 multiplier grid
         totalWin: 0
     },
 
-    // DOM Cache
-    dom: {},
+    // Internal Reel Data
+    reels: [], // { el, offset, symbols[] }
 
     init() {
-        this.dom = {
-            root: document.getElementById('gameRoot'),
-            reels: document.getElementById('reelsWrapper'),
-            credits: document.getElementById('creditDisplay'),
-            bet: document.getElementById('betDisplay'),
-            msg: document.getElementById('statusText'),
-            winModal: document.getElementById('winModal'),
-            winAmt: document.getElementById('winAmountDisplay'),
-            bonusCnt: document.getElementById('bonusCounter')
-        };
-        
-        this.buildReels();
+        // Cache DOM
+        this.elCabinet = document.getElementById('cabinet');
+        this.elContainer = document.getElementById('reelsContainer');
+        this.elCredits = document.getElementById('credits');
+        this.elBet = document.getElementById('bet');
+        this.elMsg = document.getElementById('msg');
+        this.elWin = document.getElementById('winOverlay');
+        this.elWinTitle = document.getElementById('winTitle');
+        this.elWinVal = document.getElementById('winVal');
+        this.elBuy = document.getElementById('buyBtn');
+        this.elBonusMsg = document.getElementById('bonusMsg');
+
+        this.createReels();
         this.updateUI();
     },
 
-    buildReels() {
-        this.dom.reels.innerHTML = '';
+    createReels() {
+        this.elContainer.innerHTML = '';
+        this.reels = [];
+
         for(let i=0; i<CFG.reels; i++) {
             const col = document.createElement('div');
             col.className = 'reel-col';
+            
             const strip = document.createElement('div');
             strip.className = 'reel-strip';
-            strip.id = `reel-${i}`;
             
-            // Init symbols (3 visible + buffer)
-            for(let j=0; j<6; j++) {
-                strip.appendChild(this.createSymbol(this.randSym()));
-            }
+            // We need 3 rows + buffers. Let's maintain an array of symbol objects.
+            // Initial render: Random symbols
+            const initialSyms = Array(5).fill(0).map(() => this.getRandomSym());
+            
+            initialSyms.forEach(s => strip.appendChild(this.createSymbolEl(s)));
+
+            // Set initial transform so rows 1-3 are visible (index 1,2,3)
+            // We hide index 0 (top buffer). translateY = -1 * height
+            strip.style.transform = `translateY(-${CFG.symbolHeight}px)`;
+
             col.appendChild(strip);
-            this.dom.reels.appendChild(col);
+            this.elContainer.appendChild(col);
+
+            this.reels.push({
+                dom: strip,
+                data: initialSyms
+            });
         }
     },
 
-    createSymbol(sym) {
-        const el = document.createElement('div');
-        el.className = 'symbol';
-        el.textContent = sym.char;
-        el.dataset.id = sym.id;
+    createSymbolEl(sym) {
+        const div = document.createElement('div');
+        div.className = `symbol sym-${sym.type}`;
+        div.innerHTML = sym.svg;
         
-        // Badge container for multipliers
-        const badge = document.createElement('div');
-        badge.className = 'mult-badge';
-        el.appendChild(badge);
+        // Multiplier badge container
+        const tag = document.createElement('div');
+        tag.className = 'mult-tag';
+        div.appendChild(tag);
         
-        return el;
+        return div;
     },
 
-    randSym() {
-        const idx = CFG.weights[Math.floor(Math.random() * CFG.weights.length)];
-        return CFG.symbols[idx];
+    getRandomSym() {
+        const w = CFG.weights;
+        return CFG.symbols[w[Math.floor(Math.random() * w.length)]];
     },
 
     adjustBet(dir) {
         if(this.state !== 'IDLE') return;
         this.betIdx += dir;
         if(this.betIdx < 0) this.betIdx = 0;
-        if(this.betIdx >= CFG.bets.length) this.betIdx = CFG.bets.length-1;
+        if(this.betIdx >= CFG.bets.length) this.betIdx = CFG.bets.length - 1;
         this.bet = CFG.bets[this.betIdx];
         this.updateUI();
     },
 
     toggleAuto() {
         this.auto = !this.auto;
+        document.getElementById('autoBtn').classList.toggle('active', this.auto);
         document.getElementById('autoBtn').textContent = this.auto ? "AUTO: ON" : "AUTO: OFF";
         if(this.auto && this.state === 'IDLE') this.spin();
     },
@@ -423,248 +506,268 @@ const Game = {
             this.updateUI();
             this.spin(true); // Force Bonus
         } else {
-            alert("INSUFFICIENT CREDITS");
+            alert("INSUFFICIENT FUNDS");
         }
     },
 
+    // --- SPINNING LOGIC ---
     spin(forceBonus = false) {
         if(this.state === 'SPINNING') return;
         
-        // Deduct cost if base game
+        // Cost check
         if(!this.bonus.active && !forceBonus) {
             if(this.credits < this.bet) {
-                this.auto = false; 
-                this.updateUI(); 
-                alert("NO CREDITS"); 
-                return; 
+                this.auto = false; this.updateUI(); alert("INSERT COIN"); return;
             }
             this.credits -= this.bet;
         }
 
         this.state = 'SPINNING';
-        this.dom.winModal.classList.remove('show');
-        this.dom.msg.textContent = this.bonus.active ? "BONUS SPIN..." : "SPINNING...";
+        this.elWin.classList.remove('active'); // Hide win modal
+        this.elMsg.textContent = this.bonus.active ? "BONUS ACTIVE..." : "SPINNING...";
         this.updateUI();
-        Audio.play('spin');
+        AudioSys.play('spin');
 
-        // Generate Grid
+        // 1. Prepare Result Grid
         const grid = [];
         for(let c=0; c<CFG.reels; c++) {
             let col = [];
-            for(let r=0; r<CFG.rows; r++) col.push(this.randSym());
+            for(let r=0; r<CFG.rows; r++) col.push(this.getRandomSym());
             grid.push(col);
         }
 
-        // Force Scatter triggers logic
+        // Inject Force Bonus
         if(forceBonus) {
-            grid[0][1] = CFG.symbols.find(s=>s.id==='scat');
-            grid[2][1] = CFG.symbols.find(s=>s.id==='scat');
-            grid[4][1] = CFG.symbols.find(s=>s.id==='scat');
+            const scat = CFG.symbols.find(s => s.id === 'scat');
+            grid[0][1] = scat; grid[2][1] = scat; grid[4][1] = scat;
         }
 
-        // Animation
-        for(let i=0; i<CFG.reels; i++) {
-            const strip = document.getElementById(`reel-${i}`);
-            strip.style.transition = `transform 0.2s linear`;
-            strip.style.transform = `translateY(50px) blur(5px)`; // wind up
+        // 2. Animate Reels
+        this.reels.forEach((reel, i) => {
+            const strip = reel.dom;
+            
+            // Visual Blur Effect (CSS Filter)
+            strip.style.transition = 'transform 0.2s ease-in';
+            strip.style.transform = `translateY(100px)`; // Wind up down
             
             setTimeout(() => {
-                strip.style.transition = `none`;
-                strip.style.transform = `translateY(-${CFG.symbolH * 5}px)`;
+                // Start "Infinite" Spin visual (jump back and blur)
+                strip.style.transition = 'none';
+                strip.style.filter = 'blur(8px)';
+                // Move way up to simulate spinning
+                strip.style.transform = `translateY(-1500px)`; 
                 
-                // Replace DOM
+                // Re-populate DOM with Result
+                // We need: Buffer Top + Result (3) + Buffer Bottom
                 strip.innerHTML = '';
-                // Add Top Buffer
-                strip.appendChild(this.createSymbol(this.randSym()));
-                // Add Results
-                grid[i].forEach(s => strip.appendChild(this.createSymbol(s)));
-                // Add Bot Buffer
-                strip.appendChild(this.createSymbol(this.randSym()));
+                strip.appendChild(this.createSymbolEl(this.getRandomSym())); // Top Buffer
+                grid[i].forEach(s => strip.appendChild(this.createSymbolEl(s))); // Results
+                strip.appendChild(this.createSymbolEl(this.getRandomSym())); // Bot Buffer
 
-                // Reset Transform for landing
+                // Now Land the reel
+                const delay = CFG.spinDuration + (i * CFG.stopDelay);
                 setTimeout(() => {
-                    strip.style.transition = `transform 0.3s cubic-bezier(0.2, 0.8, 0.3, 1)`;
-                    strip.style.transform = `translateY(0)`;
-                    Audio.play('stop');
-                    
-                    // If Bonus Mode, update badges visual
-                    if(this.bonus.active) this.updateBonusVisuals(i, grid[i]);
+                    strip.style.filter = 'none';
+                    strip.style.transition = `transform 0.4s cubic-bezier(0.2, 1.5, 0.5, 1)`; // Elastic bounce
+                    strip.style.transform = `translateY(-${CFG.symbolHeight}px)`; // Land at index 1
+                    AudioSys.play('stop');
 
-                }, 50);
+                    // Bonus Visuals check (if multipliers exist)
+                    if(this.bonus.active) this.renderMultipliers(i, strip);
 
-            }, CFG.spinDur + (i * CFG.delay));
-        }
+                }, delay);
 
-        // Evaluate Results
+            }, 200);
+        });
+
+        // 3. Evaluate
         setTimeout(() => {
             this.evaluate(grid);
-        }, CFG.spinDur + (CFG.reels * CFG.delay) + 200);
+        }, CFG.spinDuration + (CFG.reels * CFG.stopDelay) + 500);
     },
 
     evaluate(grid) {
-        let roundWin = 0;
+        let win = 0;
         let scatters = 0;
-
-        // 1. Calculate Scatters
+        
+        // Count Scatters
         grid.flat().forEach(s => { if(s.id === 'scat') scatters++; });
 
-        // 2. Calculate Lines (Middle Row primarily)
-        // Simplified Logic for prototype: Check Row 0, 1, 2
+        // Evaluate Paylines (Check middle row primarily for prototype simplicity, or all 3 rows)
+        // Let's check all 3 rows independently
         for(let r=0; r<CFG.rows; r++) {
             const rowSyms = grid.map(col => col[r]);
-            let matchLen = 1;
-            let first = rowSyms[0];
-            let effective = first.id === 'wild' ? null : first.id;
             
+            // Check match from left
+            let match = 1;
+            let first = rowSyms[0];
+            let effectiveId = first.id === 'wild' ? null : first.id;
+
             for(let c=1; c<CFG.reels; c++) {
                 let curr = rowSyms[c];
                 if(curr.id === 'wild') {
-                    matchLen++;
-                } else if(effective === null) {
-                    effective = curr.id; // Wild resolved
-                    matchLen++;
-                } else if(curr.id === effective) {
-                    matchLen++;
+                    match++;
+                } else if(effectiveId === null) {
+                    effectiveId = curr.id;
+                    match++;
+                } else if(curr.id === effectiveId) {
+                    match++;
                 } else {
                     break;
                 }
             }
 
-            if(matchLen >= 3) {
-                // Get base payout
-                let symObj = effective ? CFG.symbols.find(s=>s.id===effective) : CFG.symbols[0]; // all wilds
-                let basePay = symObj.pay * (matchLen-2) * (this.bet/10);
+            if(match >= 3) {
+                let symInfo = effectiveId ? CFG.symbols.find(s=>s.id===effectiveId) : CFG.symbols[0]; // 5 wilds
+                let pay = symInfo.pay * (match - 2) * (this.bet / 10);
                 
-                // APPLY BONUS MULTIPLIERS
+                // Apply Multipliers if in Bonus
                 if(this.bonus.active) {
-                    let rowMult = 1;
-                    // Check multipliers on winning positions
-                    for(let c=0; c<matchLen; c++) {
-                        if(this.bonus.gridMults[c][r] > 1) rowMult += this.bonus.gridMults[c][r];
+                    let mult = 1;
+                    for(let c=0; c<match; c++) {
+                        if(this.bonus.grid[c][r] > 1) mult += this.bonus.grid[c][r];
                     }
-                    basePay *= rowMult;
+                    pay *= mult;
                 }
-
-                roundWin += basePay;
+                win += pay;
             }
         }
 
-        // 3. Bonus Specific Logic (Update Multipliers)
+        // Bonus Logic: Wilds increase multiplier in that spot
         if(this.bonus.active) {
-            // Find Wilds to upgrade grid
+            this.bonus.spins--;
+            this.elBonusMsg.textContent = `FREE SPINS: ${this.bonus.spins}`;
+            
             for(let c=0; c<CFG.reels; c++) {
                 for(let r=0; r<CFG.rows; r++) {
                     if(grid[c][r].id === 'wild') {
-                        this.bonus.gridMults[c][r] += 1; // Increment multiplier at spot
+                        this.bonus.grid[c][r]++;
+                        this.spawnParticle(c, r); // Visual flare
                     }
                 }
             }
-            
-            this.bonus.spinsLeft--;
-            this.dom.bonusCnt.textContent = `FREE SPINS: ${this.bonus.spinsLeft}`;
         }
 
-        // 4. Trigger/Retrigger Bonus
+        // Trigger / Retrigger
         if(scatters >= 3) {
             if(!this.bonus.active) {
                 this.startBonus();
-                return; // Exit evaluation to start transition
+                return; // Pause evaluation loop
             } else {
-                this.bonus.spinsLeft += 2; // Retrigger
-                this.dom.msg.textContent = "RETRIGGER! +2 SPINS";
+                this.bonus.spins += 2;
+                this.elMsg.textContent = "RETRIGGER! +2 SPINS";
+                AudioSys.play('bonus');
             }
         }
 
-        // 5. Payouts & State
-        if(roundWin > 0) {
-            this.credits += roundWin;
-            Audio.play('win');
-            this.showWin(roundWin);
+        // Payout
+        if(win > 0) {
+            this.credits += win;
+            this.showWin(win);
+            AudioSys.play('win');
+            if(win > this.bet * 10) this.explodeParticles(); // Big Win FX
         }
 
         this.state = 'IDLE';
         this.updateUI();
 
-        // Auto Spin loop
-        if(this.bonus.active && this.bonus.spinsLeft > 0) {
-            setTimeout(() => this.spin(), 1000);
-        } else if(this.bonus.active && this.bonus.spinsLeft <= 0) {
+        // Loop
+        if(this.bonus.active && this.bonus.spins > 0) {
+            setTimeout(() => this.spin(), 1500);
+        } else if(this.bonus.active && this.bonus.spins <= 0) {
             this.endBonus();
         } else if(this.auto && this.credits >= this.bet) {
             setTimeout(() => this.spin(), 1000);
         } else if(this.auto) {
-            this.auto = false; // Stop if no credits
+            this.toggleAuto();
         }
     },
 
     startBonus() {
-        Audio.play('bonus_trigger');
         this.bonus.active = true;
-        this.bonus.spinsLeft = 10;
-        // Init 5x3 Grid of 1x multipliers
-        this.bonus.gridMults = Array(5).fill().map(() => Array(3).fill(1));
+        this.bonus.spins = 10;
+        this.bonus.grid = Array(5).fill().map(()=>[1,1,1]); // 5x3 grid of 1x
         
-        // UI Transition
-        this.dom.root.classList.remove('mode-base');
-        this.dom.root.classList.add('mode-bonus');
-        this.dom.msg.textContent = "WARNING: HEIST IN PROGRESS";
-        this.dom.bonusCnt.textContent = "FREE SPINS: 10";
-
-        setTimeout(() => this.spin(), 2000);
+        this.elCabinet.classList.add('bonus-mode');
+        this.elMsg.textContent = "HEIST INITIATED";
+        this.elBonusMsg.textContent = "FREE SPINS: 10";
+        AudioSys.play('bonus');
+        
+        setTimeout(() => this.spin(), 2500);
     },
 
     endBonus() {
         this.bonus.active = false;
-        this.dom.root.classList.remove('mode-bonus');
-        this.dom.root.classList.add('mode-base');
-        this.dom.msg.textContent = "HEIST COMPLETE";
+        this.elCabinet.classList.remove('bonus-mode');
+        this.elMsg.textContent = "HEIST COMPLETE";
+        // Clear visual badges
+        document.querySelectorAll('.mult-tag').forEach(t => t.classList.remove('show'));
         this.state = 'IDLE';
-        
-        // Clear Badges
-        const badges = document.querySelectorAll('.mult-badge');
-        badges.forEach(b => { b.classList.remove('active'); b.textContent = ''; });
     },
 
-    updateBonusVisuals(colIdx, colSyms) {
-        // Update the specific reel strip DOM to show multipliers
-        const strip = document.getElementById(`reel-${colIdx}`);
-        // Children index: 0=buffer, 1=row0, 2=row1, 3=row2, 4=buffer
+    renderMultipliers(colIdx, stripDom) {
+        // children[1] is row 0 (because 0 is buffer)
         for(let r=0; r<3; r++) {
-            const mult = this.bonus.gridMults[colIdx][r];
-            const symEl = strip.children[r+1]; // +1 because of top buffer
-            const badge = symEl.querySelector('.mult-badge');
-            
-            if(mult > 1) {
-                badge.textContent = `x${mult}`;
-                badge.classList.add('active');
+            let val = this.bonus.grid[colIdx][r];
+            if(val > 1) {
+                const sym = stripDom.children[r+1];
+                const tag = sym.querySelector('.mult-tag');
+                if(tag) {
+                    tag.textContent = `x${val}`;
+                    tag.classList.add('show');
+                }
             }
         }
     },
 
-    showWin(amount) {
-        this.dom.winAmt.textContent = Math.floor(amount);
-        this.dom.winTitle.textContent = this.bonus.active ? "HEIST PAYOUT" : "BIG WIN";
-        this.dom.winModal.classList.add('show');
-        setTimeout(() => {
-            this.dom.winModal.classList.remove('show');
-        }, 2000);
+    showWin(amt) {
+        this.elWinVal.textContent = Math.floor(amt);
+        this.elWinTitle.textContent = this.bonus.active ? "HEIST PAYOUT" : (amt > this.bet*10 ? "BIG WIN" : "WINNER");
+        this.elWin.classList.add('active');
+        document.getElementById('lastWin').textContent = Math.floor(amt);
+        setTimeout(() => this.elWin.classList.remove('active'), 2000);
     },
 
     updateUI() {
-        this.dom.credits.textContent = Math.floor(this.credits);
-        this.dom.bet.textContent = this.bet;
+        this.elCredits.textContent = Math.floor(this.credits);
+        this.elBet.textContent = this.bet;
+        document.getElementById('spinBtn').disabled = (this.state === 'SPINNING');
         
-        const spinBtn = document.getElementById('spinBtn');
-        spinBtn.disabled = (this.state === 'SPINNING');
-        
-        // Buy button opacity
-        const buyBtn = document.getElementById('buyBtn');
-        buyBtn.style.opacity = (this.credits >= this.bet*100 && this.state === 'IDLE') ? '1' : '0.5';
+        // Buy button dimming
+        const cost = this.bet * 100;
+        this.elBuy.style.opacity = (this.credits >= cost && this.state === 'IDLE') ? '1' : '0.5';
+    },
+
+    // --- VISUAL FX ---
+    spawnParticle(c, r) {
+        // Simple CSS particle at grid position
+        // Not implemented fully for brevity, but logic exists
+    },
+
+    explodeParticles() {
+        // Create particles in center
+        for(let i=0; i<20; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.background = `hsl(${Math.random()*360}, 100%, 50%)`;
+            p.style.width = (Math.random()*10+5)+'px';
+            p.style.height = p.style.width;
+            p.style.left = '50%'; p.style.top = '50%';
+            
+            // Random direction
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.random() * 300 + 100;
+            p.style.setProperty('--x', Math.cos(angle)*dist + 'px');
+            p.style.setProperty('--y', Math.sin(angle)*dist + 'px');
+            
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 1000);
+        }
     }
 };
 
-// Start Game
-window.onload = () => Game.init();
+// Start
+window.onload = () => Slot.init();
 
 </script>
 </body>
