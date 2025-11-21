@@ -3,24 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THE NEON BANDIT - Prototype</title>
+    <title>THE NEON BANDIT v2.0 - Feature Buy</title>
     <style>
-        /* --- FONTS & VARIABLES --- */
-        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Share+Tech+Mono&display=swap');
+        /* --- FONTS & VARS --- */
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700;900&family=Share+Tech+Mono&display=swap');
 
         :root {
-            --primary-bg: #05020a;
-            --metal-dark: #1a1a1a;
-            --metal-light: #333333;
+            --bg-dark: #05020a;
+            --metal-dark: #151515;
+            --metal-mid: #2a2a2a;
             --neon-cyan: #00F3FF;
             --neon-magenta: #FF0055;
             --neon-gold: #FFD700;
-            --glass-reflection: rgba(255, 255, 255, 0.05);
+            --neon-green: #00FF41;
+            --glass: rgba(255, 255, 255, 0.03);
         }
 
         body {
             background-color: #000;
-            background-image: radial-gradient(circle at center, #111 0%, #000 100%);
+            background-image: 
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%; /* CRT Scanline effect */
             color: #fff;
             font-family: 'Rajdhani', sans-serif;
             height: 100vh;
@@ -32,493 +36,416 @@
             user-select: none;
         }
 
-        /* --- MACHINE BODY (CABINET) --- */
+        /* --- CABINET --- */
         .cabinet {
             position: relative;
-            width: 800px;
-            height: 600px;
-            background: linear-gradient(180deg, var(--metal-light), var(--metal-dark));
-            border-radius: 20px;
+            width: 900px;
+            height: 700px; /* Taller for controls */
+            background: linear-gradient(180deg, #333, #111);
+            border-radius: 25px;
             box-shadow: 
-                0 0 50px rgba(0, 243, 255, 0.1),
-                inset 0 0 20px rgba(0,0,0,0.8);
+                0 0 80px rgba(0, 243, 255, 0.15),
+                inset 0 0 30px rgba(0,0,0,0.9),
+                0 20px 50px #000;
             border: 4px solid #444;
             display: flex;
             flex-direction: column;
-            padding: 20px;
-            transform: perspective(1000px) rotateX(2deg);
+            padding: 25px;
+            z-index: 1;
         }
 
-        .cabinet::before {
-            /* Micro-scratch texture simulation */
-            content: "";
-            position: absolute;
-            top:0; left:0; right:0; bottom:0;
-            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDIiLz4KPC9zdmc+');
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        /* --- HEADER / BANDIT EYES --- */
+        /* --- MARQUEE --- */
         .marquee {
-            height: 80px;
+            height: 60px;
             background: #000;
-            border: 2px solid var(--metal-light);
-            border-radius: 10px;
+            border: 1px solid #333;
+            border-radius: 8px;
             margin-bottom: 15px;
             display: flex;
             justify-content: center;
             align-items: center;
-            position: relative;
-            overflow: hidden;
-            box-shadow: inset 0 0 15px #000;
-            z-index: 2;
+            box-shadow: inset 0 0 20px rgba(0, 243, 255, 0.1);
         }
 
         .bandit-eyes {
-            font-size: 40px;
+            font-size: 32px;
             color: var(--neon-cyan);
-            text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
-            animation: blink 4s infinite;
+            text-shadow: 0 0 10px var(--neon-cyan);
+            letter-spacing: 5px;
+            font-family: 'Share Tech Mono';
         }
 
-        @keyframes blink {
-            0%, 96%, 100% { transform: scaleY(1); opacity: 1; }
-            98% { transform: scaleY(0.1); opacity: 0.5; }
-        }
-
-        /* --- VAULT (REEL AREA) --- */
+        /* --- REELS --- */
         .vault-frame {
             flex-grow: 1;
-            background: #000;
-            border: 4px solid #222;
-            border-radius: 15px;
+            background: #080808;
+            border: 5px solid #222;
+            border-radius: 10px;
             position: relative;
             display: flex;
-            justify-content: center;
             padding: 10px;
-            box-shadow: 
-                inset 0 0 30px #000,
-                0 0 15px var(--neon-cyan);
+            box-shadow: inset 0 0 50px #000;
             overflow: hidden;
-            z-index: 2;
         }
 
-        /* The Laser Grid overlay */
-        .laser-grid {
+        /* Glass Reflection Overlay */
+        .glass-glare {
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: 
-                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
-            background-size: 20px 20px;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.05) 45%, transparent 50%);
             pointer-events: none;
-            z-index: 10;
+            z-index: 20;
         }
 
         .reels-container {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             width: 100%;
             z-index: 5;
         }
 
         .reel-strip {
             flex: 1;
-            background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(20,20,30,0.5) 50%, rgba(0,0,0,0.9) 100%);
-            border-radius: 5px;
+            background: linear-gradient(180deg, #000 0%, #1a1a25 50%, #000 100%);
             border: 1px solid #333;
+            border-radius: 4px;
             overflow: hidden;
             position: relative;
-            mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
         }
 
         .reel-content {
             display: flex;
             flex-direction: column;
-            transition: transform 0.1s linear; /* Default idle */
+            /* Center the initial strip */
+            transform: translateY(0); 
         }
 
         .symbol {
-            height: 100px;
+            height: 110px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 50px;
-            filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
+            font-size: 55px;
+            position: relative;
         }
 
-        /* Animation States */
+        /* Symbol Glows */
+        .symbol[data-type="high"] { text-shadow: 0 0 15px rgba(255,215,0,0.5); }
+        .symbol[data-type="scat"] { text-shadow: 0 0 20px var(--neon-magenta); }
+        .symbol[data-type="wild"] { filter: drop-shadow(0 0 8px var(--neon-cyan)); }
+
+        /* Animations */
         .spinning .reel-content {
-            animation: spinBlur 0.1s infinite linear;
+            animation: spinBlur 0.15s infinite linear;
         }
-
-        .bounce {
-            animation: bounceStop 0.4s ease-out forwards;
-        }
-
         @keyframes spinBlur {
-            0% { filter: blur(0px); transform: translateY(0); }
-            50% { filter: blur(5px) translateY(10px); }
-            100% { filter: blur(0px) translateY(0); }
+            0% { filter: blur(2px); transform: translateY(-50px); }
+            100% { filter: blur(8px); transform: translateY(50px); }
         }
 
+        .bounce { animation: bounceStop 0.3s cubic-bezier(0.2, 0.8, 0.3, 1); }
         @keyframes bounceStop {
-            0% { transform: translateY(-20px); }
+            0% { transform: translateY(-30px); }
             50% { transform: translateY(10px); }
             100% { transform: translateY(0); }
         }
 
         .winner {
-            animation: winPulse 0.8s infinite alternate;
-            z-index: 20;
+            z-index: 10;
+            animation: pulseWin 0.8s infinite alternate;
+        }
+        @keyframes pulseWin {
+            0% { transform: scale(1); filter: brightness(1); }
+            100% { transform: scale(1.15); filter: brightness(1.5) drop-shadow(0 0 10px var(--neon-gold)); }
         }
 
-        @keyframes winPulse {
-            0% { transform: scale(1); filter: drop-shadow(0 0 5px var(--neon-gold)); }
-            100% { transform: scale(1.2); filter: drop-shadow(0 0 25px var(--neon-gold)) brightness(1.5); }
-        }
-
-        /* --- DASHBOARD (UI) --- */
+        /* --- DASHBOARD --- */
         .dashboard {
-            height: 100px;
-            margin-top: 20px;
+            height: 140px;
+            margin-top: 15px;
             background: #111;
+            border-top: 2px solid #444;
             border-radius: 0 0 15px 15px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            padding: 15px;
+            position: relative;
+        }
+
+        .control-group {
             display: flex;
+            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 30px;
-            border-top: 2px solid #333;
-            z-index: 2;
-        }
-
-        .display-panel {
-            font-family: 'Share Tech Mono', monospace;
-            background: #000;
-            padding: 10px 20px;
+            background: #0a0a0a;
             border: 1px solid #333;
-            border-radius: 5px;
-            color: #0f0; /* Retro VFD Green */
-            text-shadow: 0 0 5px #0f0;
-            min-width: 120px;
-            text-align: center;
+            border-radius: 8px;
+            padding: 5px;
         }
 
-        .label {
-            font-size: 12px;
-            color: #666;
-            text-shadow: none;
-            display: block;
-            margin-bottom: 4px;
-            text-transform: uppercase;
+        .screen-text {
+            font-family: 'Share Tech Mono';
+            color: var(--neon-cyan);
+            font-size: 20px;
+            margin-bottom: 5px;
+            text-shadow: 0 0 5px rgba(0, 243, 255, 0.3);
         }
 
-        .value {
-            font-size: 24px;
-        }
+        .label { font-size: 10px; color: #555; letter-spacing: 1px; text-transform: uppercase; }
 
-        .spin-btn {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #444, #000);
-            border: 3px solid var(--neon-magenta);
-            box-shadow: 
-                0 0 15px var(--neon-magenta),
-                inset 0 0 10px rgba(255,0,85,0.5);
-            color: #fff;
-            font-family: 'Rajdhani';
-            font-weight: bold;
-            font-size: 18px;
+        /* Buttons */
+        .btn-row { display: flex; gap: 10px; align-items: center; }
+        
+        button {
             cursor: pointer;
-            transition: all 0.2s;
+            font-family: 'Rajdhani';
+            font-weight: 700;
             text-transform: uppercase;
+            transition: all 0.1s;
+            border: none;
             outline: none;
         }
 
-        .spin-btn:active {
-            transform: scale(0.95);
-            box-shadow: 0 0 5px var(--neon-magenta);
+        .adj-btn {
+            width: 30px; height: 30px;
+            background: #333; color: #fff;
+            border-radius: 4px;
+            font-size: 18px;
+            box-shadow: 0 3px 0 #111;
         }
+        .adj-btn:active { transform: translateY(3px); box-shadow: none; }
 
-        .spin-btn:disabled {
-            filter: grayscale(1);
-            cursor: not-allowed;
-        }
-
-        /* --- LEVER MECHANISM --- */
-        .lever-housing {
-            position: absolute;
-            right: -60px;
-            bottom: 100px;
-            width: 40px;
-            height: 150px;
-            background: #222;
-            border-radius: 0 10px 10px 0;
-            border: 2px solid #444;
-            z-index: 1;
-        }
-
-        .lever-arm {
-            position: absolute;
-            bottom: 50px;
-            left: 10px;
-            width: 15px;
-            height: 200px;
-            background: linear-gradient(to right, #ccc, #666);
-            transform-origin: bottom center;
-            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-            cursor: pointer;
-        }
-
-        .lever-knob {
-            position: absolute;
-            top: -30px;
-            left: -12px;
-            width: 40px;
-            height: 40px;
+        .spin-btn {
+            width: 90px; height: 90px;
             border-radius: 50%;
-            background: rgba(0, 243, 255, 0.8);
-            box-shadow: 0 0 15px var(--neon-cyan);
-            border: 2px solid #fff;
+            background: radial-gradient(circle at 30% 30%, #555, #000);
+            border: 3px solid var(--neon-green);
+            color: #fff; font-size: 18px;
+            box-shadow: 0 0 15px var(--neon-green), inset 0 0 10px rgba(0,255,65,0.3);
         }
-
-        .pulled {
-            transform: rotateX(60deg) scaleY(0.8);
+        .spin-btn:active { transform: scale(0.95); }
+        .spin-btn.auto-active {
+            background: radial-gradient(circle at 30% 30%, #500, #200);
+            border-color: #f00;
+            box-shadow: 0 0 15px #f00;
+            animation: heartbeat 1s infinite;
         }
+        @keyframes heartbeat { 0% {transform: scale(1);} 50% {transform: scale(1.05);} 100% {transform: scale(1);} }
 
-        /* --- VFX LAYERS --- */
-        .win-overlay {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            font-size: 80px;
+        .buy-btn {
+            background: linear-gradient(45deg, #8a6400, #ffd700);
+            color: #000;
+            width: 100%; padding: 8px 0;
+            margin-top: 5px;
+            border-radius: 4px;
+            font-size: 14px;
             font-weight: 900;
-            color: #fff;
-            text-transform: uppercase;
-            text-shadow: 
-                0 0 10px var(--neon-gold),
-                0 0 30px var(--neon-gold),
-                0 0 60px var(--neon-magenta);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        .buy-btn::after {
+            content: ''; position: absolute; top:0; left:-100%; width:100%; height:100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+            animation: shine 3s infinite;
+        }
+        @keyframes shine { 0% {left:-100%} 20% {left:100%} 100% {left:100%} }
+
+        .auto-btn {
+            background: #222; color: #fff;
+            padding: 5px 15px; border-radius: 4px;
+            border: 1px solid #444;
+            font-size: 12px; margin-top: 5px;
+        }
+        .auto-btn.on { background: var(--neon-cyan); color: #000; box-shadow: 0 0 8px var(--neon-cyan); }
+
+        /* --- OVERLAYS --- */
+        .win-overlay {
+            position: absolute; top: 40%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            text-align: center;
             pointer-events: none;
             z-index: 100;
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-align: center;
-            line-height: 1;
         }
-        
-        .win-subtext {
-            font-size: 30px;
-            color: var(--neon-cyan);
-            display: block;
-            margin-top: 10px;
+        .win-text-main {
+            font-size: 80px; font-weight: 900; color: #fff;
+            text-shadow: 0 0 20px var(--neon-gold), 0 0 40px var(--neon-magenta);
+            line-height: 0.9;
         }
-
-        .active-win {
-            transform: translate(-50%, -50%) scale(1);
-        }
+        .win-text-sub { font-size: 40px; color: var(--neon-cyan); font-family: 'Share Tech Mono'; }
+        .active-win { transform: translate(-50%, -50%) scale(1); }
 
     </style>
 </head>
 <body>
 
-    <!-- The Machine -->
     <div class="cabinet">
         
-        <!-- Header / Bandit Eyes -->
+        <!-- Header -->
         <div class="marquee">
-            <div class="bandit-eyes" id="banditEyes">(◉_◉)</div>
+            <div class="bandit-eyes" id="banditHeader">NEON BANDIT // SYSTEM READY</div>
         </div>
 
-        <!-- The Vault (Reels) -->
+        <!-- Reels -->
         <div class="vault-frame">
-            <div class="laser-grid"></div>
+            <div class="glass-glare"></div>
             <div class="reels-container" id="reelsContainer">
-                <!-- Reels injected via JS -->
+                <!-- Generated JS -->
             </div>
+            
             <div class="win-overlay" id="winOverlay">
-                BIG WIN
-                <span class="win-subtext" id="winAmount">0</span>
+                <div class="win-text-main" id="winTitle">BIG WIN</div>
+                <div class="win-text-sub" id="winAmount">0</div>
             </div>
         </div>
 
-        <!-- Dashboard -->
+        <!-- Controls -->
         <div class="dashboard">
-            <div class="display-panel">
+            
+            <!-- Left: Balance & Bet -->
+            <div class="control-group">
                 <span class="label">CREDITS</span>
-                <span class="value" id="creditsDisplay">1000</span>
+                <div class="screen-text" id="creditsDisplay">2000</div>
+                
+                <span class="label" style="margin-top:5px;">BET AMOUNT</span>
+                <div class="btn-row">
+                    <button class="adj-btn" onclick="changeBet(-1)">-</button>
+                    <div class="screen-text" id="betDisplay" style="font-size:18px; min-width:40px; text-align:center;">10</div>
+                    <button class="adj-btn" onclick="changeBet(1)">+</button>
+                </div>
             </div>
-            
-            <button class="spin-btn" id="spinBtn">SPIN</button>
-            
-            <div class="display-panel">
-                <span class="label">WIN</span>
-                <span class="value" id="winDisplay">0</span>
-            </div>
-        </div>
 
-        <!-- Lever -->
-        <div class="lever-housing">
-            <div class="lever-arm" id="leverArm">
-                <div class="lever-knob"></div>
+            <!-- Center: Spin -->
+            <div class="control-group" style="border:none; background:none;">
+                <button class="spin-btn" id="spinBtn">SPIN</button>
+                <button class="auto-btn" id="autoBtn" onclick="toggleAutoSpin()">AUTO: OFF</button>
             </div>
-        </div>
 
+            <!-- Right: Wins & Feature -->
+            <div class="control-group">
+                <span class="label">LAST WIN</span>
+                <div class="screen-text" id="lastWinDisplay">0</div>
+                
+                <button class="buy-btn" id="buyBtn" onclick="buyBonus()">
+                    BUY BONUS <br> <span style="font-size:10px; opacity:0.8;">(COST: 100x)</span>
+                </button>
+            </div>
+
+        </div>
     </div>
 
     <script>
-        // --- CONFIGURATION ---
+        /* --- CONFIG & ASSETS --- */
         const CONFIG = {
             reels: 5,
-            rows: 3, // Visible rows
-            symbolHeight: 100,
-            spinDurationBase: 1000, // ms
-            spinDelayPerReel: 300, // ms
-            bet: 10
+            rows: 3,
+            symbolHeight: 110,
+            spinTime: 1000, // Base spin time
+            reelDelay: 200,
+            betLevels: [10, 20, 50, 100, 200]
         };
 
-        // Asset Mapping (using Emoji as high-fidelity placeholders)
-        // Types: High (Gold/Gem), Mid (Dynamite/Tech), Low (Shapes), Special (Wild/Bonus)
         const SYMBOLS = [
-            { id: 'wild',   val: '🦝', type: 'special', payout: 0 }, // Bandit
-            { id: 'scat',   val: '☸️', type: 'special', payout: 0 }, // Vault Wheel
-            { id: 'high1',  val: '💎', type: 'high', payout: 50 },   // Blue Diamond
-            { id: 'high2',  val: '🧈', type: 'high', payout: 30 },   // Gold Bars
-            { id: 'mid1',   val: '🧨', type: 'mid', payout: 20 },    // Dynamite
-            { id: 'mid2',   val: '📟', type: 'mid', payout: 15 },    // Decoder
-            { id: 'low1',   val: '♠️', type: 'low', payout: 5 },     // Neon Spade
-            { id: 'low2',   val: '♦️', type: 'low', payout: 5 },     // Neon Diamond
-            { id: 'low3',   val: '♣️', type: 'low', payout: 5 },     // Neon Club
+            { id: 'wild',  val: '🦝', type: 'wild',  pay: 0 }, 
+            { id: 'scat',  val: '☢️', type: 'scat',  pay: 0 },
+            { id: 'high1', val: '💎', type: 'high',  pay: 50 },
+            { id: 'high2', val: '💰', type: 'high',  pay: 30 },
+            { id: 'mid1',  val: '💣', type: 'mid',   pay: 15 },
+            { id: 'mid2',  val: '🔫', type: 'mid',   pay: 10 },
+            { id: 'low1',  val: 'A',  type: 'low',   pay: 5 },
+            { id: 'low2',  val: 'K',  type: 'low',   pay: 4 },
+            { id: 'low3',  val: 'Q',  type: 'low',   pay: 3 },
+            { id: 'low4',  val: 'J',  type: 'low',   pay: 2 }
         ];
 
-        // Simplified weighted random
+        // Simple weighted RNG
         const WEIGHTS = [
-            0, // Wild (Rare)
-            0, // Scatter (Rare)
-            2, 2, 3, 3, 4, 5, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8
+            0, 1, // Rare
+            2, 2, 3, 3, 4, 4, // High/Mid
+            5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 9 // Lows
         ];
 
-        // --- STATE ---
-        let credits = 1000;
-        let isSpinning = false;
-        let reelDOMElements = [];
-        let finalGrid = []; // 5x3 grid of result IDs
+        /* --- STATE --- */
+        let state = {
+            credits: 2000,
+            betIndex: 0,
+            isSpinning: false,
+            autoSpin: false,
+            reels: [], // DOM elements
+            grid: []   // Result logic
+        };
 
-        // --- AUDIO SYSTEM (Web Audio API Synthesis) ---
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const audioCtx = new AudioContext();
+        /* --- AUDIO ENGINE --- */
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioCtx();
 
-        function playSound(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            
-            const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            
-            osc.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
+        function tone(freq, type, dur, vol=0.1) {
+            if(ctx.state === 'suspended') ctx.resume();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, ctx.currentTime);
+            gain.gain.setValueAtTime(vol, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + dur);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + dur);
+        }
 
-            const now = audioCtx.currentTime;
-
-            if (type === 'spinStart') {
-                // Servo whine
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(100, now);
-                osc.frequency.linearRampToValueAtTime(600, now + 0.3);
-                gainNode.gain.setValueAtTime(0.1, now);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
-            } 
-            else if (type === 'reelStop') {
-                // Heavy clack
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(80, now);
-                osc.frequency.exponentialRampToValueAtTime(40, now + 0.1);
-                gainNode.gain.setValueAtTime(0.2, now);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                osc.start(now);
-                osc.stop(now + 0.15);
-            }
-            else if (type === 'winSmall') {
-                // High chime
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(880, now); // A5
-                gainNode.gain.setValueAtTime(0.1, now);
-                gainNode.gain.linearRampToValueAtTime(0, now + 0.5);
-                osc.start(now);
-                osc.stop(now + 0.5);
-            }
-            else if (type === 'winBig') {
-                // Powerup sound
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(220, now);
-                osc.frequency.linearRampToValueAtTime(880, now + 0.5);
-                gainNode.gain.setValueAtTime(0.2, now);
-                gainNode.gain.linearRampToValueAtTime(0, now + 1.0);
-                osc.start(now);
-                osc.stop(now + 1.0);
+        function playSfx(name) {
+            switch(name) {
+                case 'spin': tone(150, 'sawtooth', 0.1); break;
+                case 'stop': tone(80, 'square', 0.1, 0.2); break;
+                case 'win': 
+                    setTimeout(()=>tone(400,'sine',0.1),0);
+                    setTimeout(()=>tone(500,'sine',0.1),100);
+                    setTimeout(()=>tone(800,'sine',0.4),200);
+                    break;
+                case 'bonus':
+                    tone(100, 'sawtooth', 1.0, 0.3);
+                    tone(50, 'square', 1.0, 0.3);
+                    break;
             }
         }
 
-        // --- INITIALIZATION ---
+        /* --- CORE FUNCTIONS --- */
+        
         function init() {
             const container = document.getElementById('reelsContainer');
             
-            // Create 5 Reels
-            for (let i = 0; i < CONFIG.reels; i++) {
-                const reelStrip = document.createElement('div');
-                reelStrip.className = 'reel-strip';
+            // Build Reels
+            for(let i=0; i<CONFIG.reels; i++) {
+                const strip = document.createElement('div');
+                strip.className = 'reel-strip';
+                const content = document.createElement('div');
+                content.className = 'reel-content';
+                // Set initial offset
+                content.style.marginTop = `-${CONFIG.symbolHeight}px`;
                 
-                const reelContent = document.createElement('div');
-                reelContent.className = 'reel-content';
-                // Set initial position (centered on middle row)
-                reelContent.style.marginTop = `-${CONFIG.symbolHeight}px`; 
-
-                // Fill with random initial symbols (Rows + buffer)
-                // We need at least 3 visible + 2 buffer
-                let reelSymbols = [];
+                // Fill initial dummy symbols
                 for(let j=0; j<5; j++) {
-                    const sym = getRandomSymbol();
-                    const el = createSymbolElement(sym);
-                    reelContent.appendChild(el);
-                    reelSymbols.push(sym.id);
+                    content.appendChild(createSymbol(getRandomSymbol()));
                 }
-
-                reelStrip.appendChild(reelContent);
-                container.appendChild(reelStrip);
                 
-                reelDOMElements.push({
-                    strip: reelStrip,
-                    content: reelContent,
-                    symbols: reelSymbols // Keep track of data
-                });
+                strip.appendChild(content);
+                container.appendChild(strip);
+                state.reels.push({ strip, content });
             }
 
-            updateDisplay();
-
-            // Listeners
-            document.getElementById('spinBtn').addEventListener('click', startSpin);
-            document.getElementById('leverArm').addEventListener('click', () => {
-                if(!isSpinning) {
-                    animateLever();
-                    setTimeout(startSpin, 300);
-                }
-            });
+            document.getElementById('spinBtn').addEventListener('click', () => triggerSpin(false));
+            updateUI();
         }
 
-        function createSymbolElement(symObj) {
-            const div = document.createElement('div');
-            div.className = 'symbol';
-            div.textContent = symObj.val;
-            div.dataset.id = symObj.id;
-            
-            // Cyber effect for specific symbols
-            if(symObj.type === 'high' || symObj.type === 'special') {
-                div.style.filter = `drop-shadow(0 0 8px ${symObj.id === 'high1' ? '#00F3FF' : '#FFD700'})`;
-            }
-            
-            return div;
+        function createSymbol(symData) {
+            const el = document.createElement('div');
+            el.className = 'symbol';
+            el.textContent = symData.val;
+            el.dataset.type = symData.type;
+            el.dataset.id = symData.id;
+            return el;
         }
 
         function getRandomSymbol() {
@@ -526,207 +453,241 @@
             return SYMBOLS[idx];
         }
 
-        // --- ANIMATION & LOGIC ---
-        function animateLever() {
-            const arm = document.getElementById('leverArm');
-            arm.classList.add('pulled');
-            setTimeout(() => arm.classList.remove('pulled'), 500);
+        /* --- BETTING SYSTEM --- */
+        function changeBet(dir) {
+            if(state.isSpinning) return;
+            state.betIndex += dir;
+            if(state.betIndex < 0) state.betIndex = 0;
+            if(state.betIndex >= CONFIG.betLevels.length) state.betIndex = CONFIG.betLevels.length - 1;
+            updateUI();
         }
 
-        function startSpin() {
-            if (isSpinning || credits < CONFIG.bet) return;
+        function getCurrentBet() {
+            return CONFIG.betLevels[state.betIndex];
+        }
+
+        /* --- AUTOSPIN --- */
+        function toggleAutoSpin() {
+            state.autoSpin = !state.autoSpin;
+            const btn = document.getElementById('autoBtn');
+            if(state.autoSpin) {
+                btn.classList.add('on');
+                btn.innerText = "AUTO: ON";
+                if(!state.isSpinning) triggerSpin(false);
+            } else {
+                btn.classList.remove('on');
+                btn.innerText = "AUTO: OFF";
+            }
+        }
+
+        /* --- BUY BONUS --- */
+        function buyBonus() {
+            if(state.isSpinning) return;
+            const cost = getCurrentBet() * 100;
             
-            isSpinning = true;
-            credits -= CONFIG.bet;
-            document.getElementById('winDisplay').textContent = "0";
-            hideWinOverlay();
-            updateDisplay();
-            playSound('spinStart');
+            if(state.credits >= cost) {
+                // Turn off auto spin if buying feature
+                if(state.autoSpin) toggleAutoSpin();
+                
+                state.credits -= cost; // Deduct cost manually
+                updateUI();
+                triggerSpin(true); // Force bonus flag
+            } else {
+                alert("INSUFFICIENT CREDITS FOR HEIST!");
+            }
+        }
 
-            // Reset animations and classes
-            reelDOMElements.forEach(r => {
-                r.content.querySelectorAll('.symbol').forEach(s => s.classList.remove('winner'));
-                r.strip.classList.add('spinning');
-            });
-
-            // Generate Result Grid
-            finalGrid = [];
-            for(let i=0; i<CONFIG.reels; i++) {
-                let col = [];
-                for(let j=0; j<CONFIG.rows; j++) {
-                    col.push(getRandomSymbol());
+        /* --- SPIN LOGIC --- */
+        function triggerSpin(forceBonus = false) {
+            const bet = getCurrentBet();
+            if(state.isSpinning) return;
+            
+            // Check Balance (unless forceBonus already deducted)
+            if(!forceBonus) {
+                if(state.credits < bet) {
+                    state.autoSpin = false;
+                    updateUI();
+                    alert("INSERT COIN");
+                    return;
                 }
-                finalGrid.push(col);
+                state.credits -= bet;
             }
 
-            // Stop Reels Sequence
-            reelDOMElements.forEach((reel, index) => {
+            state.isSpinning = true;
+            
+            // Visual reset
+            document.getElementById('winOverlay').classList.remove('active-win');
+            document.getElementById('banditHeader').innerText = "ACCESSING VAULT...";
+            document.getElementById('banditHeader').style.color = "#00F3FF";
+            
+            state.reels.forEach(r => {
+                r.strip.classList.add('spinning');
+                r.content.querySelectorAll('.symbol').forEach(s => s.classList.remove('winner'));
+            });
+            updateUI();
+            playSfx('spin');
+
+            // Generate Grid
+            state.grid = [];
+            for(let c=0; c<CONFIG.reels; c++) {
+                let col = [];
+                for(let r=0; r<CONFIG.rows; r++) col.push(getRandomSymbol());
+                state.grid.push(col);
+            }
+
+            // RIGGING: If Buy Bonus, inject Scatters
+            if(forceBonus) {
+                // Scatters on Reel 1, 3, 5 (Indices 0, 2, 4)
+                state.grid[0][1] = SYMBOLS.find(s => s.id === 'scat');
+                state.grid[2][1] = SYMBOLS.find(s => s.id === 'scat');
+                state.grid[4][1] = SYMBOLS.find(s => s.id === 'scat');
+                playSfx('bonus');
+            }
+
+            // Stop Sequence
+            state.reels.forEach((reel, i) => {
                 setTimeout(() => {
-                    stopReel(index);
-                }, CONFIG.spinDurationBase + (index * CONFIG.spinDelayPerReel));
+                    stopReel(i, state.grid[i]);
+                }, CONFIG.spinTime + (i * CONFIG.reelDelay));
             });
 
-            // Enable spin button after last reel + delay
+            // End of Spin Handler
             setTimeout(() => {
-                checkWins();
-                isSpinning = false;
-            }, CONFIG.spinDurationBase + (CONFIG.reels * CONFIG.spinDelayPerReel) + 500);
+                state.isSpinning = false;
+                evaluateWin();
+                
+                // Handle Auto Spin Loop
+                if(state.autoSpin && state.credits >= bet) {
+                    setTimeout(() => triggerSpin(false), 1000);
+                } else if(state.autoSpin && state.credits < bet) {
+                    toggleAutoSpin(); // Stop if no money
+                }
+
+            }, CONFIG.spinTime + (CONFIG.reels * CONFIG.reelDelay) + 500);
         }
 
-        function stopReel(index) {
-            const reel = reelDOMElements[index];
+        function stopReel(index, symbols) {
+            const reel = state.reels[index];
             const content = reel.content;
             
-            // Remove spin blur
             reel.strip.classList.remove('spinning');
+            playSfx('stop');
             
-            // Play Sound
-            playSound('reelStop');
-
-            // Clear old symbols and populate with results
-            // Strategy: Create a clean stack of Top Buffer + 3 Result Symbols + Bottom Buffer
+            // Rebuild DOM: Buffer + Result + Buffer
             content.innerHTML = '';
+            content.appendChild(createSymbol(getRandomSymbol())); // Buffer Top
+            symbols.forEach(s => content.appendChild(createSymbol(s))); // Result
+            content.appendChild(createSymbol(getRandomSymbol())); // Buffer Bot
             
-            // Add buffer top
-            content.appendChild(createSymbolElement(getRandomSymbol()));
-            
-            // Add actual results (Top to Bottom)
-            finalGrid[index].forEach(sym => {
-                content.appendChild(createSymbolElement(sym));
-            });
-
-            // Add buffer bottom
-            content.appendChild(createSymbolElement(getRandomSymbol()));
-
-            // Add bounce animation
+            // Bounce Effect
             content.classList.add('bounce');
-            setTimeout(() => content.classList.remove('bounce'), 400);
+            setTimeout(()=>content.classList.remove('bounce'), 300);
         }
 
-        // --- WIN EVALUATION ---
-        function checkWins() {
+        /* --- WIN LOGIC --- */
+        function evaluateWin() {
+            const grid = state.grid;
             let totalWin = 0;
-            const gridIds = finalGrid.map(col => col.map(s => s.id));
-            let winningCoords = [];
+            let winLines = [];
+            const currentBet = getCurrentBet();
 
-            // Simple Logic: Check for 3+ of kind on middle row (Row index 1)
-            // Or Scatters anywhere
-            
-            // 1. Middle Row Line Check
+            // 1. Check Line Wins (Simple: 3+ matching on Middle Row)
+            // Index 1 is middle row
+            let middleRow = grid.map(col => col[1]);
             let matchCount = 1;
-            let currentSym = gridIds[0][1];
-            let potentialCoords = [{c:0, r:1}];
-            let isWild = (currentSym === 'wild');
+            let firstSym = middleRow[0];
+            let isWild = firstSym.id === 'wild';
+            let effectiveId = firstSym.id;
 
-            for(let i=1; i<CONFIG.reels; i++) {
-                const nextSym = gridIds[i][1];
-                const nextIsWild = (nextSym === 'wild');
-
-                if (nextSym === currentSym || isWild || nextIsWild) {
+            // Look at first symbol to determine line type
+            if(isWild && middleRow[1]) {
+                 effectiveId = middleRow[1].id; // Wild adopts next symbol
+            }
+            
+            // Determine match length
+            for(let i=1; i<middleRow.length; i++) {
+                let s = middleRow[i];
+                // Match if IDs match OR symbol is wild OR prev was wild (and we now lock ID)
+                if(s.id === effectiveId || s.id === 'wild') {
                     matchCount++;
-                    potentialCoords.push({c:i, r:1});
-                    
-                    // Lock symbol if we started with wild
-                    if(isWild && !nextIsWild) {
-                        currentSym = nextSym;
-                        isWild = false;
-                    }
+                } else if (effectiveId === 'wild') {
+                    // We started with wild, now we found a real symbol, this is the target
+                    effectiveId = s.id;
+                    matchCount++;
                 } else {
                     break;
                 }
             }
 
-            if (matchCount >= 3) {
-                // Calculate Payout
-                const symbolData = SYMBOLS.find(s => s.id === currentSym);
-                const winVal = (symbolData ? symbolData.payout : 10) * matchCount;
-                totalWin += winVal;
-                winningCoords.push(...potentialCoords);
-            }
-
-            // 2. Scatter Check (Anywhere)
-            let scatters = [];
-            for(let c=0; c<5; c++) {
-                for(let r=0; r<3; r++) {
-                    if(gridIds[c][r] === 'scat') scatters.push({c, r});
+            if(matchCount >= 3) {
+                let symObj = SYMBOLS.find(s => s.id === effectiveId);
+                if(!symObj && effectiveId === 'wild') symObj = SYMBOLS[0]; // 5 wilds
+                
+                let payout = symObj ? symObj.pay : 0;
+                // Payout formula
+                let winAmt = payout * (matchCount - 2) * (currentBet / 10);
+                if(winAmt > 0) {
+                    totalWin += Math.floor(winAmt);
+                    // Highlight Middle Row
+                    for(let i=0; i<matchCount; i++) {
+                        // Access DOM: content -> children[1] (middle row)
+                        state.reels[i].content.children[2].classList.add('winner');
+                    }
                 }
             }
-            if(scatters.length >= 3) {
-                totalWin += 500; // Big bonus
-                winningCoords.push(...scatters);
-                showBanditReaction();
-            }
 
-            // --- PAYOUT ---
-            if (totalWin > 0) {
-                credits += totalWin;
-                highlightWins(winningCoords);
-                
-                if(totalWin > 100) {
-                    playSound('winBig');
-                    showWinOverlay(totalWin, "BIG HEIST");
-                } else {
-                    playSound('winSmall');
-                    showWinOverlay(totalWin, "NICE HAUL");
-                }
-                
-                animateValue('winDisplay', 0, totalWin, 1000);
-            }
+            // 2. Check Scatters (Anywhere)
+            let scatterCount = 0;
+            grid.flat().forEach(s => { if(s.id === 'scat') scatterCount++; });
             
-            updateDisplay();
+            if(scatterCount >= 3) {
+                // Bonus Trigger
+                totalWin += currentBet * 10; // Instant prize
+                document.getElementById('banditHeader').innerText = "!!! HEIST TRIGGERED !!!";
+                document.getElementById('banditHeader').style.color = "#FF0055";
+                playSfx('bonus');
+                // Stop autospin on bonus
+                if(state.autoSpin) toggleAutoSpin();
+                
+                // Highlight Scatters
+                state.reels.forEach(r => {
+                    Array.from(r.content.children).forEach(child => {
+                        if(child.dataset.id === 'scat') child.classList.add('winner');
+                    });
+                });
+            }
+
+            // 3. Handle Payout
+            if(totalWin > 0) {
+                state.credits += totalWin;
+                playSfx('win');
+                document.getElementById('lastWinDisplay').innerText = totalWin;
+                document.getElementById('winAmount').innerText = totalWin;
+                document.getElementById('winTitle').innerText = scatterCount >= 3 ? "HEIST BONUS" : "BIG WIN";
+                
+                document.getElementById('winOverlay').classList.add('active-win');
+            }
+
+            updateUI();
         }
 
-        function highlightWins(coords) {
-            coords.forEach(coord => {
-                // The DOM structure is: Buffer, Row0, Row1, Row2, Buffer
-                // So Row index maps to child index + 1
-                const reel = reelDOMElements[coord.c];
-                const symbolEl = reel.content.children[coord.r + 1];
-                if(symbolEl) symbolEl.classList.add('winner');
-            });
+        function updateUI() {
+            document.getElementById('creditsDisplay').innerText = Math.floor(state.credits);
+            document.getElementById('betDisplay').innerText = getCurrentBet();
+            
+            // Dim Buy Button if too expensive
+            const buyCost = getCurrentBet() * 100;
+            const buyBtn = document.getElementById('buyBtn');
+            if(state.credits < buyCost) {
+                buyBtn.style.opacity = "0.5";
+                buyBtn.style.cursor = "not-allowed";
+            } else {
+                buyBtn.style.opacity = "1";
+                buyBtn.style.cursor = "pointer";
+            }
         }
 
-        function updateDisplay() {
-            document.getElementById('creditsDisplay').innerText = credits;
-        }
-
-        function animateValue(id, start, end, duration) {
-            const obj = document.getElementById(id);
-            let startTimestamp = null;
-            const step = (timestamp) => {
-                if (!startTimestamp) startTimestamp = timestamp;
-                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                obj.innerHTML = Math.floor(progress * (end - start) + start);
-                if (progress < 1) {
-                    window.requestAnimationFrame(step);
-                }
-            };
-            window.requestAnimationFrame(step);
-        }
-
-        function showWinOverlay(amount, text) {
-            const overlay = document.getElementById('winOverlay');
-            const amt = document.getElementById('winAmount');
-            overlay.childNodes[0].nodeValue = text;
-            amt.innerText = amount;
-            overlay.classList.add('active-win');
-        }
-
-        function hideWinOverlay() {
-            document.getElementById('winOverlay').classList.remove('active-win');
-        }
-
-        function showBanditReaction() {
-            const eyes = document.getElementById('banditEyes');
-            eyes.innerText = "(> ‿ <)";
-            eyes.style.color = "#FF0055";
-            setTimeout(() => {
-                eyes.innerText = "(◉_◉)";
-                eyes.style.color = "#00F3FF";
-            }, 2000);
-        }
-
-        // Run
+        // Start
         init();
 
     </script>
