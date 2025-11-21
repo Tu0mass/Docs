@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>The Bandit's Heist: Ultimate Edition</title>
+    <title>Bandit's Heist: Production Ready</title>
     
-    <!-- Google Fonts -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rye&family=Roboto+Condensed:wght@700&display=swap" rel="stylesheet">
 
@@ -13,20 +13,10 @@
         /* --- THEME VARIABLES --- */
         :root {
             --c-bg-dark: #0a0502;
-            --c-cabinet: #2b1d14;
-            --c-cabinet-border: #4a3426;
             --c-grid-bg: #160f0a;
-            
-            --c-gold-light: #ffe6a3;
             --c-gold-main: #ffb700;
-            --c-gold-dark: #b38000;
-            
             --c-ui-bg: #1a110b;
             --c-accent-green: #43aa8b;
-            --c-accent-red: #d90429;
-            
-            --shadow-soft: 0 5px 15px rgba(0,0,0,0.5);
-            --shadow-hard: 0 2px 0 rgba(0,0,0,0.8);
             
             --font-title: 'Rye', serif;
             --font-ui: 'Orbitron', sans-serif;
@@ -48,7 +38,7 @@
             color: white;
         }
 
-        /* --- CABINET CONTAINER --- */
+        /* --- CABINET --- */
         #cabinet {
             position: relative;
             width: 100%;
@@ -58,10 +48,7 @@
             background: linear-gradient(180deg, #3d2b1f 0%, #1f140d 100%);
             border-radius: 20px;
             border: 6px solid #111;
-            box-shadow: 
-                inset 0 0 40px rgba(0,0,0,0.8),
-                0 0 0 2px #5c4033,
-                0 30px 60px rgba(0,0,0,0.8);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
             display: flex;
             flex-direction: column;
             padding: 15px;
@@ -81,9 +68,9 @@
 
         .logo {
             font-family: var(--font-title);
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             color: var(--c-gold-main);
-            text-shadow: 0 2px 0 #000, 0 0 15px rgba(255, 183, 0, 0.3);
+            text-shadow: 0 2px 0 #000;
             letter-spacing: 1px;
         }
 
@@ -99,7 +86,7 @@
             animation: pulseRed 1s infinite;
         }
 
-        /* --- GRID AREA --- */
+        /* --- GRID --- */
         #grid-container {
             position: relative;
             flex-grow: 1;
@@ -111,28 +98,27 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
         }
 
         #grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
             grid-template-rows: repeat(5, 1fr);
-            gap: 6px;
+            gap: 4px;
             width: 100%;
             height: 100%;
-            max-width: 500px;
-            aspect-ratio: 6/5;
+            /* Ensure grid doesn't collapse */
+            min-height: 300px; 
         }
 
-        /* --- CELLS & SYMBOLS --- */
         .cell {
             position: relative;
             background: rgba(255, 255, 255, 0.03);
-            border-radius: 8px;
+            border-radius: 6px;
             display: flex;
             justify-content: center;
             align-items: center;
+            overflow: visible;
         }
 
         /* Golden Square Visuals */
@@ -142,8 +128,8 @@
             inset: 0;
             border: 2px solid var(--c-gold-main);
             background: radial-gradient(circle, rgba(255, 183, 0, 0.2) 20%, transparent 80%);
-            border-radius: 8px;
-            box-shadow: inset 0 0 15px var(--c-gold-dark);
+            border-radius: 6px;
+            box-shadow: inset 0 0 15px #b38000;
             animation: goldPulse 2s infinite ease-in-out;
             z-index: 0;
         }
@@ -152,13 +138,11 @@
             width: 90%;
             height: 90%;
             z-index: 2;
-            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5));
-            transition: transform 0.2s;
-            /* Hardware acceleration for smooth anims */
-            will-change: transform, opacity; 
+            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.6));
+            will-change: transform; 
         }
 
-        /* --- UI CONTROLS --- */
+        /* --- CONTROLS --- */
         #controls {
             margin-top: 15px;
             background: var(--c-ui-bg);
@@ -166,7 +150,7 @@
             padding: 15px;
             border-top: 2px solid #5c4033;
             display: grid;
-            grid-template-columns: 1fr 1.4fr 1fr;
+            grid-template-columns: 1fr 1.3fr 1fr;
             gap: 10px;
             align-items: center;
         }
@@ -182,46 +166,32 @@
         }
 
         .lbl { font-size: 0.6rem; color: #888; font-family: var(--font-ui); letter-spacing: 1px; margin-bottom: 2px; }
-        .val { font-size: 1.1rem; color: #fff; font-family: var(--font-ui); font-weight: 700; letter-spacing: -0.5px; }
+        .val { font-size: 1.1rem; color: #fff; font-family: var(--font-ui); font-weight: 700; }
         .win-val { color: #4cc9f0; text-shadow: 0 0 5px rgba(76, 201, 240, 0.4); }
 
         /* Buttons */
-        .btn-group { display: flex; gap: 5px; justify-content: space-between; width: 100%; }
-        
         button {
-            border: none;
-            outline: none;
-            cursor: pointer;
-            font-family: var(--font-title);
-            border-radius: 6px;
-            transition: all 0.1s;
-            text-transform: uppercase;
+            border: none; outline: none; cursor: pointer;
+            font-family: var(--font-title); border-radius: 6px;
+            transition: all 0.1s; text-transform: uppercase;
         }
         button:active { transform: translateY(2px); }
         button:disabled { filter: grayscale(1); cursor: not-allowed; transform: none; }
 
         .btn-spin {
-            width: 100%;
-            height: 60px;
+            width: 100%; height: 60px;
             background: linear-gradient(to bottom, #55a630, #2b9348);
-            color: #fff;
-            font-size: 1.4rem;
-            text-shadow: 0 2px 0 #000;
+            color: #fff; font-size: 1.4rem; text-shadow: 0 2px 0 #000;
             border-bottom: 4px solid #004b23;
             box-shadow: 0 5px 10px rgba(0,0,0,0.5);
-            border-radius: 50px; /* Pill shape */
+            border-radius: 50px;
         }
         
         .btn-buy {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
+            width: 100%; padding: 8px; margin-top: 5px;
             background: linear-gradient(to bottom, #fb8500, #e85d04);
-            color: #221;
-            font-size: 0.9rem;
-            font-weight: bold;
-            border-bottom: 3px solid #9d0208;
-            border-radius: 6px;
+            color: #221; font-size: 0.8rem; font-weight: bold;
+            border-bottom: 3px solid #9d0208; border-radius: 6px;
         }
         .btn-buy span { display: block; font-size: 0.6rem; font-family: var(--font-ui); opacity: 0.8; }
 
@@ -231,7 +201,6 @@
         .bet-btn { background: #444; color: #fff; width: 30px; height: 30px; font-size: 1.2rem; }
         #bet-disp { flex-grow: 1; text-align: center; font-family: var(--font-ui); font-size: 1rem; }
 
-        /* Auto Toggle */
         .auto-toggle {
             display: flex; align-items: center; justify-content: center; gap: 5px;
             background: #222; color: #aaa; font-size: 0.7rem; padding: 4px;
@@ -239,17 +208,15 @@
         }
         .auto-toggle.active { background: var(--c-accent-green); color: #000; border-color: #fff; font-weight: bold; }
 
-        /* --- OVERLAYS --- */
+        /* --- MODALS & ANIMATION --- */
         #modal {
             position: absolute; inset: 0; z-index: 100;
-            background: rgba(0,0,0,0.9);
-            backdrop-filter: blur(8px);
+            background: rgba(0,0,0,0.9); backdrop-filter: blur(8px);
             display: none; flex-direction: column; justify-content: center; align-items: center;
         }
-        #modal-title { font-family: var(--font-title); font-size: 3rem; color: var(--c-gold-main); text-shadow: 0 0 30px var(--c-gold-main); animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        #modal-title { font-family: var(--font-title); font-size: 3rem; color: var(--c-gold-main); text-shadow: 0 0 30px var(--c-gold-main); animation: popIn 0.5s; }
         #modal-amount { font-family: var(--font-ui); font-size: 2.5rem; color: #fff; margin-top: 10px; }
 
-        /* --- ANIMATIONS --- */
         @keyframes popIn { 0% { transform: scale(0); } 80% { transform: scale(1.1); } 100% { transform: scale(1); } }
         @keyframes pulseRed { 0% { box-shadow: 0 0 5px #d90429; } 50% { box-shadow: 0 0 15px #d90429; } 100% { box-shadow: 0 0 5px #d90429; } }
         @keyframes goldPulse { 0% { opacity: 0.5; } 50% { opacity: 1; box-shadow: inset 0 0 25px var(--c-gold-main); } 100% { opacity: 0.5; } }
@@ -263,7 +230,6 @@
         .anim-flip { animation: flip3D 0.6s ease-out forwards; }
         @keyframes flip3D { 0% { transform: rotateY(90deg); } 100% { transform: rotateY(0deg); } }
 
-        /* Particle Container */
         #particles { position: absolute; inset: 0; pointer-events: none; z-index: 50; overflow: hidden; }
         .particle { position: absolute; width: 8px; height: 8px; background: var(--c-gold-main); border-radius: 50%; animation: flyOut 1s forwards; }
         @keyframes flyOut { to { transform: translate(var(--tx), var(--ty)); opacity: 0; } }
@@ -282,7 +248,6 @@
             <div id="grid"></div>
             <div id="particles"></div>
             
-            <!-- Win Modal -->
             <div id="modal">
                 <div id="modal-title">BIG WIN</div>
                 <div id="modal-amount">1000.00</div>
@@ -290,10 +255,9 @@
         </div>
 
         <div id="controls">
-            <!-- Left: Balance & Bet -->
             <div class="panel">
                 <div class="lbl">BALANCE</div>
-                <div class="val" id="val-bal">1000.00</div>
+                <div class="val" id="val-bal">2000.00</div>
                 <div class="bet-changer">
                     <button class="bet-btn" onclick="game.adjustBet(-1)">-</button>
                     <div id="bet-disp">1</div>
@@ -301,7 +265,6 @@
                 </div>
             </div>
 
-            <!-- Center: Spin -->
             <div style="display:flex; flex-direction:column; align-items:center;">
                 <button class="btn-spin" id="btn-spin" onclick="game.manualSpin()">SPIN</button>
                 <div class="auto-toggle" id="btn-auto" onclick="game.toggleAuto()">
@@ -309,7 +272,6 @@
                 </div>
             </div>
 
-            <!-- Right: Win & Buy -->
             <div class="panel">
                 <div class="lbl">LAST WIN</div>
                 <div class="val win-val" id="val-win">0.00</div>
@@ -322,58 +284,46 @@
     </div>
 
 <script>
-/** 
- * ===========================================
- * 1. ASSET GENERATION (High Fidelity SVGs)
- * ===========================================
- */
-const SVG = {
-    // Gradients and definitions
-    defs: `
+/* --- ASSET GENERATION --- */
+const SVG_DEFS = `
     <defs>
         <linearGradient id="gGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffd700"/><stop offset="100%" stop-color="#b8860b"/></linearGradient>
         <linearGradient id="gSilver" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#e0e0e0"/><stop offset="100%" stop-color="#757575"/></linearGradient>
         <linearGradient id="gBronze" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffcc80"/><stop offset="100%" stop-color="#8d6e63"/></linearGradient>
         <filter id="dropShadow"><feDropShadow dx="1" dy="2" stdDeviation="1" flood-color="#000" flood-opacity="0.5"/></filter>
-    </defs>`,
+    </defs>`;
+
+const SVG = {
+    '10': `<svg viewBox="0 0 100 100">${SVG_DEFS}<rect x="10" y="10" width="80" height="80" rx="10" fill="#37474f" stroke="#263238" stroke-width="4"/><text x="50" y="65" font-size="50" fill="#90a4ae" text-anchor="middle" font-weight="bold" font-family="serif" filter="url(#dropShadow)">10</text></svg>`,
+    'J': `<svg viewBox="0 0 100 100">${SVG_DEFS}<rect x="10" y="10" width="80" height="80" rx="10" fill="#0d47a1" stroke="#002171" stroke-width="4"/><text x="50" y="65" font-size="50" fill="#64b5f6" text-anchor="middle" font-weight="bold" font-family="serif" filter="url(#dropShadow)">J</text></svg>`,
+    'Q': `<svg viewBox="0 0 100 100">${SVG_DEFS}<rect x="10" y="10" width="80" height="80" rx="10" fill="#1b5e20" stroke="#003300" stroke-width="4"/><text x="50" y="65" font-size="50" fill="#81c784" text-anchor="middle" font-weight="bold" font-family="serif" filter="url(#dropShadow)">Q</text></svg>`,
+    'K': `<svg viewBox="0 0 100 100">${SVG_DEFS}<rect x="10" y="10" width="80" height="80" rx="10" fill="#b71c1c" stroke="#7f0000" stroke-width="4"/><text x="50" y="65" font-size="50" fill="#e57373" text-anchor="middle" font-weight="bold" font-family="serif" filter="url(#dropShadow)">K</text></svg>`,
+    'A': `<svg viewBox="0 0 100 100">${SVG_DEFS}<rect x="10" y="10" width="80" height="80" rx="10" fill="#e65100" stroke="#bf360c" stroke-width="4"/><text x="50" y="65" font-size="50" fill="#ffb74d" text-anchor="middle" font-weight="bold" font-family="serif" filter="url(#dropShadow)">A</text></svg>`,
     
-    // Low Pays
-    '10': c => `<svg viewBox="0 0 100 100">${SVG.defs}<rect x="10" y="10" width="80" height="80" rx="10" fill="#37474f" stroke="#263238" stroke-width="4"/><text x="50" y="65" font-size="50" fill="#90a4ae" text-anchor="middle" font-weight="bold" font-family="serif" filter="url(#dropShadow)">10</text></svg>`,
-    'J': c => `<svg viewBox="0 0 100 100">${SVG.defs}<rect x="10" y="10" width="80" height="80" rx="10" fill="#0d47a1" stroke="#002171" stroke-width="4"/><text x="50" y="65" font-size="50" fill="#64b5f6" text-anchor="middle" font-weight="bold" font-family="serif" filter="url(#dropShadow)">J</text></svg>`,
-    'Q': c => `<svg viewBox="0 0 100 100">${SVG.defs}<rect x="10" y="10" width="80" height="80" rx="10" fill="#1b5e20" stroke="#003300" stroke-width="4"/><text x="50" y="65" font-size="50" fill="#81c784" text-anchor="middle" font-weight="bold" font-family="serif" filter="url(#dropShadow)">Q</text></svg>`,
-    'K': c => `<svg viewBox="0 0 100 100">${SVG.defs}<rect x="10" y="10" width="80" height="80" rx="10" fill="#b71c1c" stroke="#7f0000" stroke-width="4"/><text x="50" y="65" font-size="50" fill="#e57373" text-anchor="middle" font-weight="bold" font-family="serif" filter="url(#dropShadow)">K</text></svg>`,
-    'A': c => `<svg viewBox="0 0 100 100">${SVG.defs}<rect x="10" y="10" width="80" height="80" rx="10" fill="#e65100" stroke="#bf360c" stroke-width="4"/><text x="50" y="65" font-size="50" fill="#ffb74d" text-anchor="middle" font-weight="bold" font-family="serif" filter="url(#dropShadow)">A</text></svg>`,
+    'cheese': `<svg viewBox="0 0 100 100">${SVG_DEFS}<path d="M15,75 L85,75 L85,45 L50,20 L15,45 Z" fill="url(#gGold)" stroke="#b8860b" stroke-width="3" filter="url(#dropShadow)"/><circle cx="35" cy="55" r="6" fill="#b8860b" opacity="0.6"/><circle cx="65" cy="50" r="8" fill="#b8860b" opacity="0.6"/><circle cx="50" cy="65" r="5" fill="#b8860b" opacity="0.6"/></svg>`,
+    'beer': `<svg viewBox="0 0 100 100">${SVG_DEFS}<path d="M30,30 V80 Q30,90 40,90 H60 Q70,90 70,80 V30 Z" fill="#ffca28" stroke="#000" stroke-width="2" filter="url(#dropShadow)"/><path d="M25,30 Q30,10 50,20 Q70,10 75,30 Z" fill="#fff" stroke="#ccc" stroke-width="2"/><rect x="70" y="40" width="10" height="30" rx="5" fill="none" stroke="#000" stroke-width="4"/></svg>`,
+    'baguette': `<svg viewBox="0 0 100 100">${SVG_DEFS}<ellipse cx="50" cy="50" rx="42" ry="18" transform="rotate(-35 50 50)" fill="#d7ccc8" stroke="#5d4037" stroke-width="3" filter="url(#dropShadow)"/><path d="M42,42 L52,32 M58,58 L68,48" stroke="#5d4037" stroke-width="3" stroke-linecap="round"/></svg>`,
+    'hat': `<svg viewBox="0 0 100 100">${SVG_DEFS}<rect x="25" y="35" width="50" height="40" fill="#212121" stroke="#9e9e9e" stroke-width="1" filter="url(#dropShadow)"/><rect x="10" y="75" width="80" height="10" rx="2" fill="#212121" stroke="#9e9e9e" stroke-width="1"/><rect x="25" y="65" width="50" height="5" fill="#d32f2f"/></svg>`,
     
-    // High Pays
-    'cheese': `<svg viewBox="0 0 100 100">${SVG.defs}<path d="M15,75 L85,75 L85,45 L50,20 L15,45 Z" fill="url(#gGold)" stroke="#b8860b" stroke-width="3" filter="url(#dropShadow)"/><circle cx="35" cy="55" r="6" fill="#b8860b" opacity="0.6"/><circle cx="65" cy="50" r="8" fill="#b8860b" opacity="0.6"/><circle cx="50" cy="65" r="5" fill="#b8860b" opacity="0.6"/></svg>`,
-    'beer': `<svg viewBox="0 0 100 100">${SVG.defs}<path d="M30,30 V80 Q30,90 40,90 H60 Q70,90 70,80 V30 Z" fill="#ffca28" stroke="#000" stroke-width="2" filter="url(#dropShadow)"/><path d="M25,30 Q30,10 50,20 Q70,10 75,30 Z" fill="#fff" stroke="#ccc" stroke-width="2"/><rect x="70" y="40" width="10" height="30" rx="5" fill="none" stroke="#000" stroke-width="4"/></svg>`,
-    'baguette': `<svg viewBox="0 0 100 100">${SVG.defs}<ellipse cx="50" cy="50" rx="42" ry="18" transform="rotate(-35 50 50)" fill="#d7ccc8" stroke="#5d4037" stroke-width="3" filter="url(#dropShadow)"/><path d="M42,42 L52,32 M58,58 L68,48" stroke="#5d4037" stroke-width="3" stroke-linecap="round"/></svg>`,
-    'hat': `<svg viewBox="0 0 100 100">${SVG.defs}<rect x="25" y="35" width="50" height="40" fill="#212121" stroke="#9e9e9e" stroke-width="1" filter="url(#dropShadow)"/><rect x="10" y="75" width="80" height="10" rx="2" fill="#212121" stroke="#9e9e9e" stroke-width="1"/><rect x="25" y="65" width="50" height="5" fill="#d32f2f"/></svg>`,
-    
-    // Specials
-    'fs': `<svg viewBox="0 0 100 100">${SVG.defs}<circle cx="50" cy="50" r="40" fill="#004d40" stroke="#1de9b6" stroke-width="4" filter="url(#dropShadow)"/><text x="50" y="60" font-size="28" fill="#1de9b6" text-anchor="middle" font-weight="900">FS</text><text x="50" y="80" font-size="10" fill="#fff" text-anchor="middle">BONUS</text></svg>`,
-    'rainbow': `<svg viewBox="0 0 100 100">${SVG.defs}<path d="M10,80 A40,40 0 0,1 90,80" fill="none" stroke="#d50000" stroke-width="6"/><path d="M15,80 A35,35 0 0,1 85,80" fill="none" stroke="#ffea00" stroke-width="6"/><path d="M20,80 A30,30 0 0,1 80,80" fill="none" stroke="#00c853" stroke-width="6"/><path d="M25,80 A25,25 0 0,1 75,80" fill="none" stroke="#2962ff" stroke-width="6" filter="url(#dropShadow)"/><text x="50" y="95" font-size="14" fill="#fff" text-anchor="middle" font-weight="bold">RAINBOW</text></svg>`,
-    
-    // Coins (Dynamic Value)
+    'fs': `<svg viewBox="0 0 100 100">${SVG_DEFS}<circle cx="50" cy="50" r="40" fill="#004d40" stroke="#1de9b6" stroke-width="4" filter="url(#dropShadow)"/><text x="50" y="60" font-size="28" fill="#1de9b6" text-anchor="middle" font-weight="900">FS</text><text x="50" y="80" font-size="10" fill="#fff" text-anchor="middle">BONUS</text></svg>`,
+    'rainbow': `<svg viewBox="0 0 100 100">${SVG_DEFS}<path d="M10,80 A40,40 0 0,1 90,80" fill="none" stroke="#d50000" stroke-width="6"/><path d="M15,80 A35,35 0 0,1 85,80" fill="none" stroke="#ffea00" stroke-width="6"/><path d="M20,80 A30,30 0 0,1 80,80" fill="none" stroke="#00c853" stroke-width="6"/><path d="M25,80 A25,25 0 0,1 75,80" fill="none" stroke="#2962ff" stroke-width="6" filter="url(#dropShadow)"/><text x="50" y="95" font-size="14" fill="#fff" text-anchor="middle" font-weight="bold">RAINBOW</text></svg>`,
+
+    // Dynamic Symbols
     'coin': (type, val) => {
         let fill = type === 'gold' ? 'url(#gGold)' : type === 'silver' ? 'url(#gSilver)' : 'url(#gBronze)';
         let stroke = type === 'gold' ? '#b8860b' : type === 'silver' ? '#616161' : '#5d4037';
-        return `<svg viewBox="0 0 100 100">${SVG.defs}<circle cx="50" cy="50" r="42" fill="${fill}" stroke="${stroke}" stroke-width="3" filter="url(#dropShadow)"/><circle cx="50" cy="50" r="32" fill="none" stroke="${stroke}" stroke-width="2" stroke-dasharray="4,4"/><text x="50" y="60" font-size="24" fill="#222" text-anchor="middle" font-weight="900">${val}x</text></svg>`;
+        return `<svg viewBox="0 0 100 100">${SVG_DEFS}<circle cx="50" cy="50" r="42" fill="${fill}" stroke="${stroke}" stroke-width="3" filter="url(#dropShadow)"/><circle cx="50" cy="50" r="32" fill="none" stroke="${stroke}" stroke-width="2" stroke-dasharray="4,4"/><text x="50" y="60" font-size="24" fill="#222" text-anchor="middle" font-weight="900">${val}x</text></svg>`;
     },
-    'clover': (val) => `<svg viewBox="0 0 100 100">${SVG.defs}<path d="M50,50 Q30,20 50,10 Q70,20 50,50 Q80,30 90,50 Q80,70 50,50 Q70,80 50,90 Q30,80 50,50 Q20,70 10,50 Q20,30 50,50" fill="#2e7d32" stroke="#a5d6a7" stroke-width="2" filter="url(#dropShadow)"/><text x="50" y="55" font-size="22" fill="#fff" text-anchor="middle" font-weight="bold">x${val}</text></svg>`,
-    'pot': (val) => `<svg viewBox="0 0 100 100">${SVG.defs}<path d="M20,40 Q20,90 50,95 Q80,90 80,40 Z" fill="#212121"/><ellipse cx="50" cy="40" rx="30" ry="10" fill="url(#gGold)"/><text x="50" y="75" font-size="16" fill="#ffd700" text-anchor="middle" font-weight="bold">${val.toFixed(1)}</text></svg>`
+    'clover': (val) => `<svg viewBox="0 0 100 100">${SVG_DEFS}<path d="M50,50 Q30,20 50,10 Q70,20 50,50 Q80,30 90,50 Q80,70 50,50 Q70,80 50,90 Q30,80 50,50 Q20,70 10,50 Q20,30 50,50" fill="#2e7d32" stroke="#a5d6a7" stroke-width="2" filter="url(#dropShadow)"/><text x="50" y="55" font-size="22" fill="#fff" text-anchor="middle" font-weight="bold">x${val}</text></svg>`,
+    'pot': (val) => `<svg viewBox="0 0 100 100">${SVG_DEFS}<path d="M20,40 Q20,90 50,95 Q80,90 80,40 Z" fill="#212121"/><ellipse cx="50" cy="40" rx="30" ry="10" fill="url(#gGold)"/><text x="50" y="75" font-size="16" fill="#ffd700" text-anchor="middle" font-weight="bold">${val.toFixed(1)}</text></svg>`
 };
 
-/** 
- * ===========================================
- * 2. GAME ENGINE
- * ===========================================
- */
+/* --- GAME ENGINE --- */
 const CFG = {
     rows: 5, cols: 6,
     paytable: { '10':0.1, 'J':0.1, 'Q':0.2, 'K':0.3, 'A':0.5, 'cheese':1.0, 'beer':1.5, 'baguette':2.5, 'hat':5.0 },
-    weights: ['10','10','J','J','Q','Q','K','K','A','A','cheese','beer','baguette','hat'], // Simple weighted array
-    specialChance: 0.03
+    weights: ['10','10','J','J','Q','Q','K','K','A','A','cheese','beer','baguette','hat'],
+    specialChance: 0.04
 };
 
 const game = {
@@ -383,7 +333,6 @@ const game = {
         spinning: false, auto: false, bonus: false, fs: 0
     },
     
-    // Initialization
     init() {
         this.ui = {
             grid: document.getElementById('grid'),
@@ -427,29 +376,24 @@ const game = {
         let cell = document.getElementById(`c_${r}_${c}`);
         let type = this.state.grid[r][c];
         
-        // Toggle Golden Background
         cell.classList.toggle('golden', this.state.golden[r][c]);
-        
-        // Clear old content
         cell.innerHTML = '';
         
         if(type) {
             let div = document.createElement('div');
             div.className = `symbol ${anim}`;
-            // Handle Dynamic SVGs (Coins/Pots)
+            
+            // RENDER LOGIC: Check if type is complex (coin) or simple string
             if(type.startsWith('coin_')) div.innerHTML = SVG['coin'](type.split('_')[1], specialVal);
             else if(type === 'clover') div.innerHTML = SVG['clover'](specialVal);
             else if(type === 'pot') div.innerHTML = SVG['pot'](specialVal);
             else div.innerHTML = SVG[type] || SVG['10']; // Fallback
             
-            // Stagger drop delay based on column
             if(anim === 'anim-drop') div.style.animationDelay = `${c * 50}ms`;
             
             cell.appendChild(div);
         }
     },
-
-    // --- USER ACTIONS ---
 
     adjustBet(dir) {
         if(this.state.spinning) return;
@@ -473,7 +417,7 @@ const game = {
             this.state.fs = 8;
             this.ui.fsBadge.style.display = 'block';
             this.updateUI();
-            this.manualSpin(); // Start bonus sequence
+            this.manualSpin();
         } else {
             alert("Insufficient funds");
         }
@@ -492,7 +436,7 @@ const game = {
         this.state.win = 0;
         if(!this.state.bonus) {
             this.state.balance -= this.state.bet;
-            this.resetGolden(); // Reset golden squares in base game
+            this.resetGolden();
         } else {
             this.state.fs--;
         }
@@ -500,10 +444,8 @@ const game = {
         this.updateUI();
         this.toggleControls(false);
 
-        // 1. DROP SEQUENCE
         await this.dropSymbols();
 
-        // 2. CASCADE LOOP
         let cascading = true;
         while(cascading) {
             let win = this.evaluate();
@@ -511,13 +453,9 @@ const game = {
             if(win.amount > 0) {
                 this.state.win += win.amount;
                 this.highlightWins(win.cells);
-                
-                // Mark Golden
                 win.cells.forEach(p => this.state.golden[p.r][p.c] = true);
                 this.updateUI();
                 await this.wait(800);
-
-                // Remove & Refill
                 this.removeSymbols(win.cells, win.types);
                 await this.wait(300);
                 await this.refillGrid();
@@ -526,10 +464,8 @@ const game = {
             }
         }
 
-        // 3. RAINBOW FEATURE
         if(this.hasRainbow()) await this.triggerRainbow();
 
-        // 4. BONUS CHECK (Base Game)
         if(!this.state.bonus) {
             let fsCount = this.countSymbol('fs');
             if(fsCount >= 3) {
@@ -541,21 +477,19 @@ const game = {
                 this.ui.fsBadge.style.display = 'block';
             }
         } else if (this.state.fs === 0) {
-            // End Bonus
             this.showModal("TOTAL WIN", this.state.win.toFixed(2));
             await this.wait(3000);
             this.ui.modal.style.display = 'none';
             this.state.bonus = false;
             this.ui.fsBadge.style.display = 'none';
-            this.state.win = 0; // Reset display for base game
+            this.state.win = 0; 
             this.resetGolden();
-            this.buildGrid(); // Clean slate
+            this.buildGrid();
         }
 
         this.state.spinning = false;
         this.toggleControls(true);
 
-        // Auto Loop
         if(this.state.bonus && this.state.fs > 0) {
             setTimeout(() => this.manualSpin(), 1000);
         } else if(this.state.auto) {
@@ -563,28 +497,22 @@ const game = {
         }
     },
 
-    // --- MECHANICS HELPER FUNCTIONS ---
-
     async dropSymbols() {
-        // Logic: Fill grid with new symbols
         for(let r=0; r<CFG.rows; r++) {
             for(let c=0; c<CFG.cols; c++) {
                 this.state.grid[r][c] = this.randSym();
-                // Visual: Clear cell first
                 document.getElementById(`c_${r}_${c}`).innerHTML = '';
             }
         }
-        // Visual: Render with animation
         for(let c=0; c<CFG.cols; c++) {
             for(let r=0; r<CFG.rows; r++) {
                 this.renderCell(r, c, 'anim-drop');
             }
         }
-        await this.wait(600); // Wait for anim to finish
+        await this.wait(600);
     },
 
     async refillGrid() {
-        // Gravity Logic
         for(let c=0; c<CFG.cols; c++) {
             let write = CFG.rows - 1;
             for(let r=CFG.rows-1; r>=0; r--) {
@@ -594,13 +522,11 @@ const game = {
                     write--;
                 }
             }
-            // Fill top
             while(write >= 0) {
                 this.state.grid[write][c] = this.randSym();
                 write--;
             }
         }
-        // Render update
         for(let r=0; r<CFG.rows; r++) {
             for(let c=0; c<CFG.cols; c++) {
                 this.renderCell(r, c, 'anim-drop');
@@ -632,7 +558,7 @@ const game = {
             for(let c=0; c<CFG.cols; c++) {
                 if(!visited[r][c]) {
                     let t = this.state.grid[r][c];
-                    if(t && CFG.paytable[t]) { // Only pay symbols
+                    if(t && CFG.paytable[t]) {
                         let cl = getCluster(r, c, t);
                         if(cl.length >= 5) {
                             winCells.push(...cl);
@@ -648,19 +574,17 @@ const game = {
 
     removeSymbols(cells, types) {
         cells.forEach(p => this.state.grid[p.r][p.c] = null);
-        // Super Cascade: Remove all instances of winning symbols
         for(let r=0; r<CFG.rows; r++) {
             for(let c=0; c<CFG.cols; c++) {
                 if(types.includes(this.state.grid[r][c])) {
                     this.state.grid[r][c] = null;
-                    this.state.golden[r][c] = true; // Turn gold
+                    this.state.golden[r][c] = true;
                 }
             }
         }
     },
 
     async triggerRainbow() {
-        // Find golden squares
         let targets = [];
         for(let r=0; r<CFG.rows; r++) {
             for(let c=0; c<CFG.cols; c++) {
@@ -669,7 +593,6 @@ const game = {
         }
         if(!targets.length) return;
 
-        // Reveal items
         let reveals = targets.map(p => {
             let item = this.getRevealItem();
             this.state.grid[p.r][p.c] = item.type;
@@ -678,11 +601,9 @@ const game = {
         });
         await this.wait(1000);
 
-        // Calc Total (Simplified logic: sum coins, ignore complex clover adjacency for speed in single file)
         let total = 0;
         reveals.forEach(x => {
             if(x.type.startsWith('coin')) total += x.val * this.state.bet;
-            // Visual Pop
             this.spawnParticles(x.c * 16.6 + 8, x.r * 20 + 10);
         });
 
@@ -700,10 +621,8 @@ const game = {
         if(r < 0.6) return { type: 'coin_bronze', val: (Math.random()*4+0.2).toFixed(1)*1 };
         if(r < 0.85) return { type: 'coin_silver', val: Math.floor(Math.random()*15+5) };
         if(r < 0.95) return { type: 'coin_gold', val: Math.floor(Math.random()*50+25) };
-        return { type: 'coin_bronze', val: 1 }; // Fallback
+        return { type: 'coin_bronze', val: 1 };
     },
-
-    // --- UTILS ---
 
     spawnParticles(xPercent, yPercent) {
         let container = document.getElementById('particles');
@@ -751,9 +670,7 @@ const game = {
     wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 };
 
-// Start Game
 game.init();
-
 </script>
 </body>
 </html>
