@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE NEON BANDIT - Prototype</title>
+    <style>
+        /* --- FONTS & VARIABLES --- */
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Share+Tech+Mono&display=swap');
+
+        :root {
+            --primary-bg: #05020a;
+            --metal-dark: #1a1a1a;
+            --metal-light: #333333;
+            --neon-cyan: #00F3FF;
+            --neon-magenta: #FF0055;
+            --neon-gold: #FFD700;
+            --glass-reflection: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            background-color: #000;
+            background-image: radial-gradient(circle at center, #111 0%, #000 100%);
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* --- MACHINE BODY (CABINET) --- */
+        .cabinet {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            background: linear-gradient(180deg, var(--metal-light), var(--metal-dark));
+            border-radius: 20px;
+            box-shadow: 
+                0 0 50px rgba(0, 243, 255, 0.1),
+                inset 0 0 20px rgba(0,0,0,0.8);
+            border: 4px solid #444;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            transform: perspective(1000px) rotateX(2deg);
+        }
+
+        .cabinet::before {
+            /* Micro-scratch texture simulation */
+            content: "";
+            position: absolute;
+            top:0; left:0; right:0; bottom:0;
+            background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDIiLz4KPC9zdmc+');
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* --- HEADER / BANDIT EYES --- */
+        .marquee {
+            height: 80px;
+            background: #000;
+            border: 2px solid var(--metal-light);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 15px #000;
+            z-index: 2;
+        }
+
+        .bandit-eyes {
+            font-size: 40px;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
+            animation: blink 4s infinite;
+        }
+
+        @keyframes blink {
+            0%, 96%, 100% { transform: scaleY(1); opacity: 1; }
+            98% { transform: scaleY(0.1); opacity: 0.5; }
+        }
+
+        /* --- VAULT (REEL AREA) --- */
+        .vault-frame {
+            flex-grow: 1;
+            background: #000;
+            border: 4px solid #222;
+            border-radius: 15px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            padding: 10px;
+            box-shadow: 
+                inset 0 0 30px #000,
+                0 0 15px var(--neon-cyan);
+            overflow: hidden;
+            z-index: 2;
+        }
+
+        /* The Laser Grid overlay */
+        .laser-grid {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .reels-container {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            z-index: 5;
+        }
+
+        .reel-strip {
+            flex: 1;
+            background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(20,20,30,0.5) 50%, rgba(0,0,0,0.9) 100%);
+            border-radius: 5px;
+            border: 1px solid #333;
+            overflow: hidden;
+            position: relative;
+            mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
+        }
+
+        .reel-content {
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.1s linear; /* Default idle */
+        }
+
+        .symbol {
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 50px;
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
+        }
+
+        /* Animation States */
+        .spinning .reel-content {
+            animation: spinBlur 0.1s infinite linear;
+        }
+
+        .bounce {
+            animation: bounceStop 0.4s ease-out forwards;
+        }
+
+        @keyframes spinBlur {
+            0% { filter: blur(0px); transform: translateY(0); }
+            50% { filter: blur(5px) translateY(10px); }
+            100% { filter: blur(0px) translateY(0); }
+        }
+
+        @keyframes bounceStop {
+            0% { transform: translateY(-20px); }
+            50% { transform: translateY(10px); }
+            100% { transform: translateY(0); }
+        }
+
+        .winner {
+            animation: winPulse 0.8s infinite alternate;
+            z-index: 20;
+        }
+
+        @keyframes winPulse {
+            0% { transform: scale(1); filter: drop-shadow(0 0 5px var(--neon-gold)); }
+            100% { transform: scale(1.2); filter: drop-shadow(0 0 25px var(--neon-gold)) brightness(1.5); }
+        }
+
+        /* --- DASHBOARD (UI) --- */
+        .dashboard {
+            height: 100px;
+            margin-top: 20px;
+            background: #111;
+            border-radius: 0 0 15px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            border-top: 2px solid #333;
+            z-index: 2;
+        }
+
+        .display-panel {
+            font-family: 'Share Tech Mono', monospace;
+            background: #000;
+            padding: 10px 20px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            color: #0f0; /* Retro VFD Green */
+            text-shadow: 0 0 5px #0f0;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .label {
+            font-size: 12px;
+            color: #666;
+            text-shadow: none;
+            display: block;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .value {
+            font-size: 24px;
+        }
+
+        .spin-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #444, #000);
+            border: 3px solid var(--neon-magenta);
+            box-shadow: 
+                0 0 15px var(--neon-magenta),
+                inset 0 0 10px rgba(255,0,85,0.5);
+            color: #fff;
+            font-family: 'Rajdhani';
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            outline: none;
+        }
+
+        .spin-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 0 5px var(--neon-magenta);
+        }
+
+        .spin-btn:disabled {
+            filter: grayscale(1);
+            cursor: not-allowed;
+        }
+
+        /* --- LEVER MECHANISM --- */
+        .lever-housing {
+            position: absolute;
+            right: -60px;
+            bottom: 100px;
+            width: 40px;
+            height: 150px;
+            background: #222;
+            border-radius: 0 10px 10px 0;
+            border: 2px solid #444;
+            z-index: 1;
+        }
+
+        .lever-arm {
+            position: absolute;
+            bottom: 50px;
+            left: 10px;
+            width: 15px;
+            height: 200px;
+            background: linear-gradient(to right, #ccc, #666);
+            transform-origin: bottom center;
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            cursor: pointer;
+        }
+
+        .lever-knob {
+            position: absolute;
+            top: -30px;
+            left: -12px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(0, 243, 255, 0.8);
+            box-shadow: 0 0 15px var(--neon-cyan);
+            border: 2px solid #fff;
+        }
+
+        .pulled {
+            transform: rotateX(60deg) scaleY(0.8);
+        }
+
+        /* --- VFX LAYERS --- */
+        .win-overlay {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 80px;
+            font-weight: 900;
+            color: #fff;
+            text-transform: uppercase;
+            text-shadow: 
+                0 0 10px var(--neon-gold),
+                0 0 30px var(--neon-gold),
+                0 0 60px var(--neon-magenta);
+            pointer-events: none;
+            z-index: 100;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+            line-height: 1;
+        }
+        
+        .win-subtext {
+            font-size: 30px;
+            color: var(--neon-cyan);
+            display: block;
+            margin-top: 10px;
+        }
+
+        .active-win {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- The Machine -->
+    <div class="cabinet">
+        
+        <!-- Header / Bandit Eyes -->
+        <div class="marquee">
+            <div class="bandit-eyes" id="banditEyes">(◉_◉)</div>
+        </div>
+
+        <!-- The Vault (Reels) -->
+        <div class="vault-frame">
+            <div class="laser-grid"></div>
+            <div class="reels-container" id="reelsContainer">
+                <!-- Reels injected via JS -->
+            </div>
+            <div class="win-overlay" id="winOverlay">
+                BIG WIN
+                <span class="win-subtext" id="winAmount">0</span>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="dashboard">
+            <div class="display-panel">
+                <span class="label">CREDITS</span>
+                <span class="value" id="creditsDisplay">1000</span>
+            </div>
+            
+            <button class="spin-btn" id="spinBtn">SPIN</button>
+            
+            <div class="display-panel">
+                <span class="label">WIN</span>
+                <span class="value" id="winDisplay">0</span>
+            </div>
+        </div>
+
+        <!-- Lever -->
+        <div class="lever-housing">
+            <div class="lever-arm" id="leverArm">
+                <div class="lever-knob"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const CONFIG = {
+            reels: 5,
+            rows: 3, // Visible rows
+            symbolHeight: 100,
+            spinDurationBase: 1000, // ms
+            spinDelayPerReel: 300, // ms
+            bet: 10
+        };
+
+        // Asset Mapping (using Emoji as high-fidelity placeholders)
+        // Types: High (Gold/Gem), Mid (Dynamite/Tech), Low (Shapes), Special (Wild/Bonus)
+        const SYMBOLS = [
+            { id: 'wild',   val: '🦝', type: 'special', payout: 0 }, // Bandit
+            { id: 'scat',   val: '☸️', type: 'special', payout: 0 }, // Vault Wheel
+            { id: 'high1',  val: '💎', type: 'high', payout: 50 },   // Blue Diamond
+            { id: 'high2',  val: '🧈', type: 'high', payout: 30 },   // Gold Bars
+            { id: 'mid1',   val: '🧨', type: 'mid', payout: 20 },    // Dynamite
+            { id: 'mid2',   val: '📟', type: 'mid', payout: 15 },    // Decoder
+            { id: 'low1',   val: '♠️', type: 'low', payout: 5 },     // Neon Spade
+            { id: 'low2',   val: '♦️', type: 'low', payout: 5 },     // Neon Diamond
+            { id: 'low3',   val: '♣️', type: 'low', payout: 5 },     // Neon Club
+        ];
+
+        // Simplified weighted random
+        const WEIGHTS = [
+            0, // Wild (Rare)
+            0, // Scatter (Rare)
+            2, 2, 3, 3, 4, 5, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8
+        ];
+
+        // --- STATE ---
+        let credits = 1000;
+        let isSpinning = false;
+        let reelDOMElements = [];
+        let finalGrid = []; // 5x3 grid of result IDs
+
+        // --- AUDIO SYSTEM (Web Audio API Synthesis) ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'spinStart') {
+                // Servo whine
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(100, now);
+                osc.frequency.linearRampToValueAtTime(600, now + 0.3);
+                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } 
+            else if (type === 'reelStop') {
+                // Heavy clack
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(80, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.1);
+                gainNode.gain.setValueAtTime(0.2, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            }
+            else if (type === 'winSmall') {
+                // High chime
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, now); // A5
+                gainNode.gain.setValueAtTime(0.1, now);
+                gainNode.gain.linearRampToValueAtTime(0, now + 0.5);
+                osc.start(now);
+                osc.stop(now + 0.5);
+            }
+            else if (type === 'winBig') {
+                // Powerup sound
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.linearRampToValueAtTime(880, now + 0.5);
+                gainNode.gain.setValueAtTime(0.2, now);
+                gainNode.gain.linearRampToValueAtTime(0, now + 1.0);
+                osc.start(now);
+                osc.stop(now + 1.0);
+            }
+        }
+
+        // --- INITIALIZATION ---
+        function init() {
+            const container = document.getElementById('reelsContainer');
+            
+            // Create 5 Reels
+            for (let i = 0; i < CONFIG.reels; i++) {
+                const reelStrip = document.createElement('div');
+                reelStrip.className = 'reel-strip';
+                
+                const reelContent = document.createElement('div');
+                reelContent.className = 'reel-content';
+                // Set initial position (centered on middle row)
+                reelContent.style.marginTop = `-${CONFIG.symbolHeight}px`; 
+
+                // Fill with random initial symbols (Rows + buffer)
+                // We need at least 3 visible + 2 buffer
+                let reelSymbols = [];
+                for(let j=0; j<5; j++) {
+                    const sym = getRandomSymbol();
+                    const el = createSymbolElement(sym);
+                    reelContent.appendChild(el);
+                    reelSymbols.push(sym.id);
+                }
+
+                reelStrip.appendChild(reelContent);
+                container.appendChild(reelStrip);
+                
+                reelDOMElements.push({
+                    strip: reelStrip,
+                    content: reelContent,
+                    symbols: reelSymbols // Keep track of data
+                });
+            }
+
+            updateDisplay();
+
+            // Listeners
+            document.getElementById('spinBtn').addEventListener('click', startSpin);
+            document.getElementById('leverArm').addEventListener('click', () => {
+                if(!isSpinning) {
+                    animateLever();
+                    setTimeout(startSpin, 300);
+                }
+            });
+        }
+
+        function createSymbolElement(symObj) {
+            const div = document.createElement('div');
+            div.className = 'symbol';
+            div.textContent = symObj.val;
+            div.dataset.id = symObj.id;
+            
+            // Cyber effect for specific symbols
+            if(symObj.type === 'high' || symObj.type === 'special') {
+                div.style.filter = `drop-shadow(0 0 8px ${symObj.id === 'high1' ? '#00F3FF' : '#FFD700'})`;
+            }
+            
+            return div;
+        }
+
+        function getRandomSymbol() {
+            const idx = WEIGHTS[Math.floor(Math.random() * WEIGHTS.length)];
+            return SYMBOLS[idx];
+        }
+
+        // --- ANIMATION & LOGIC ---
+        function animateLever() {
+            const arm = document.getElementById('leverArm');
+            arm.classList.add('pulled');
+            setTimeout(() => arm.classList.remove('pulled'), 500);
+        }
+
+        function startSpin() {
+            if (isSpinning || credits < CONFIG.bet) return;
+            
+            isSpinning = true;
+            credits -= CONFIG.bet;
+            document.getElementById('winDisplay').textContent = "0";
+            hideWinOverlay();
+            updateDisplay();
+            playSound('spinStart');
+
+            // Reset animations and classes
+            reelDOMElements.forEach(r => {
+                r.content.querySelectorAll('.symbol').forEach(s => s.classList.remove('winner'));
+                r.strip.classList.add('spinning');
+            });
+
+            // Generate Result Grid
+            finalGrid = [];
+            for(let i=0; i<CONFIG.reels; i++) {
+                let col = [];
+                for(let j=0; j<CONFIG.rows; j++) {
+                    col.push(getRandomSymbol());
+                }
+                finalGrid.push(col);
+            }
+
+            // Stop Reels Sequence
+            reelDOMElements.forEach((reel, index) => {
+                setTimeout(() => {
+                    stopReel(index);
+                }, CONFIG.spinDurationBase + (index * CONFIG.spinDelayPerReel));
+            });
+
+            // Enable spin button after last reel + delay
+            setTimeout(() => {
+                checkWins();
+                isSpinning = false;
+            }, CONFIG.spinDurationBase + (CONFIG.reels * CONFIG.spinDelayPerReel) + 500);
+        }
+
+        function stopReel(index) {
+            const reel = reelDOMElements[index];
+            const content = reel.content;
+            
+            // Remove spin blur
+            reel.strip.classList.remove('spinning');
+            
+            // Play Sound
+            playSound('reelStop');
+
+            // Clear old symbols and populate with results
+            // Strategy: Create a clean stack of Top Buffer + 3 Result Symbols + Bottom Buffer
+            content.innerHTML = '';
+            
+            // Add buffer top
+            content.appendChild(createSymbolElement(getRandomSymbol()));
+            
+            // Add actual results (Top to Bottom)
+            finalGrid[index].forEach(sym => {
+                content.appendChild(createSymbolElement(sym));
+            });
+
+            // Add buffer bottom
+            content.appendChild(createSymbolElement(getRandomSymbol()));
+
+            // Add bounce animation
+            content.classList.add('bounce');
+            setTimeout(() => content.classList.remove('bounce'), 400);
+        }
+
+        // --- WIN EVALUATION ---
+        function checkWins() {
+            let totalWin = 0;
+            const gridIds = finalGrid.map(col => col.map(s => s.id));
+            let winningCoords = [];
+
+            // Simple Logic: Check for 3+ of kind on middle row (Row index 1)
+            // Or Scatters anywhere
+            
+            // 1. Middle Row Line Check
+            let matchCount = 1;
+            let currentSym = gridIds[0][1];
+            let potentialCoords = [{c:0, r:1}];
+            let isWild = (currentSym === 'wild');
+
+            for(let i=1; i<CONFIG.reels; i++) {
+                const nextSym = gridIds[i][1];
+                const nextIsWild = (nextSym === 'wild');
+
+                if (nextSym === currentSym || isWild || nextIsWild) {
+                    matchCount++;
+                    potentialCoords.push({c:i, r:1});
+                    
+                    // Lock symbol if we started with wild
+                    if(isWild && !nextIsWild) {
+                        currentSym = nextSym;
+                        isWild = false;
+                    }
+                } else {
+                    break;
+                }
+            }
+
+            if (matchCount >= 3) {
+                // Calculate Payout
+                const symbolData = SYMBOLS.find(s => s.id === currentSym);
+                const winVal = (symbolData ? symbolData.payout : 10) * matchCount;
+                totalWin += winVal;
+                winningCoords.push(...potentialCoords);
+            }
+
+            // 2. Scatter Check (Anywhere)
+            let scatters = [];
+            for(let c=0; c<5; c++) {
+                for(let r=0; r<3; r++) {
+                    if(gridIds[c][r] === 'scat') scatters.push({c, r});
+                }
+            }
+            if(scatters.length >= 3) {
+                totalWin += 500; // Big bonus
+                winningCoords.push(...scatters);
+                showBanditReaction();
+            }
+
+            // --- PAYOUT ---
+            if (totalWin > 0) {
+                credits += totalWin;
+                highlightWins(winningCoords);
+                
+                if(totalWin > 100) {
+                    playSound('winBig');
+                    showWinOverlay(totalWin, "BIG HEIST");
+                } else {
+                    playSound('winSmall');
+                    showWinOverlay(totalWin, "NICE HAUL");
+                }
+                
+                animateValue('winDisplay', 0, totalWin, 1000);
+            }
+            
+            updateDisplay();
+        }
+
+        function highlightWins(coords) {
+            coords.forEach(coord => {
+                // The DOM structure is: Buffer, Row0, Row1, Row2, Buffer
+                // So Row index maps to child index + 1
+                const reel = reelDOMElements[coord.c];
+                const symbolEl = reel.content.children[coord.r + 1];
+                if(symbolEl) symbolEl.classList.add('winner');
+            });
+        }
+
+        function updateDisplay() {
+            document.getElementById('creditsDisplay').innerText = credits;
+        }
+
+        function animateValue(id, start, end, duration) {
+            const obj = document.getElementById(id);
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerHTML = Math.floor(progress * (end - start) + start);
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        function showWinOverlay(amount, text) {
+            const overlay = document.getElementById('winOverlay');
+            const amt = document.getElementById('winAmount');
+            overlay.childNodes[0].nodeValue = text;
+            amt.innerText = amount;
+            overlay.classList.add('active-win');
+        }
+
+        function hideWinOverlay() {
+            document.getElementById('winOverlay').classList.remove('active-win');
+        }
+
+        function showBanditReaction() {
+            const eyes = document.getElementById('banditEyes');
+            eyes.innerText = "(> ‿ <)";
+            eyes.style.color = "#FF0055";
+            setTimeout(() => {
+                eyes.innerText = "(◉_◉)";
+                eyes.style.color = "#00F3FF";
+            }, 2000);
+        }
+
+        // Run
+        init();
+
+    </script>
+</body>
+</html>
