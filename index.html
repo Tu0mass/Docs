@@ -2,591 +2,831 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NEON BANDIT: ULTIMATE EDITION</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Bandit's Heist - Cluster Slot</title>
     <style>
-        /* --- 1. FONTS & VARIABLES --- */
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;700&display=swap');
-
         :root {
-            --bg-dark: #050508;
-            --panel-bg: #121214;
-            --neon-cyan: #00f3ff;
-            --neon-magenta: #ff0055;
-            --neon-gold: #ffd700;
-            --neon-green: #00ff41;
-            --glass: rgba(255,255,255,0.03);
-            
-            --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
-            --ease-elastic: cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            --bg-color: #1a1510;
+            --cabinet-color: #2e241b;
+            --reel-bg: #3d3226;
+            --gold-color: #ffcc00;
+            --ui-bg: #111;
+            --accent: #e76f51;
         }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
 
         body {
-            background: #000 radial-gradient(circle at center, #1a1a20 0%, #000 100%);
-            color: #fff;
-            font-family: 'Rajdhani', sans-serif;
-            height: 100vh; margin: 0;
-            display: flex; justify-content: center; align-items: center;
+            margin: 0;
+            background-color: var(--bg-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
             overflow: hidden;
         }
 
-        /* --- 2. CABINET LAYOUT --- */
-        #cabinet {
+        #game-container {
             position: relative;
-            width: 950px; height: 800px;
-            background: linear-gradient(180deg, #2b2b30 0%, #050505 100%);
-            border: 4px solid #333;
-            border-radius: 24px;
-            box-shadow: 
-                inset 0 0 80px rgba(0,0,0,0.8),
-                0 0 60px rgba(0, 243, 255, 0.1);
-            display: flex; flex-direction: column;
-            padding: 25px;
-            transition: all 0.5s ease;
+            width: 100%;
+            max-width: 600px;
+            background: var(--cabinet-color);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        /* Bonus Mode Visual State */
-        #cabinet.mode-bonus {
-            border-color: var(--neon-magenta);
-            box-shadow: 
-                inset 0 0 100px rgba(50,0,0,0.9),
-                0 0 80px rgba(255, 0, 85, 0.3);
+        /* Header & Bonus Indicator */
+        header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
         }
 
-        /* --- 3. HEADER --- */
-        .header-bar {
-            height: 70px;
-            background: #080808;
-            border: 2px solid #222;
-            border-radius: 12px;
+        h1 { margin: 0; font-size: 1.5rem; color: var(--gold-color); text-transform: uppercase; text-shadow: 0 2px 0 #000; }
+        
+        #bonus-banner {
+            background: linear-gradient(45deg, #e76f51, #d62828);
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            display: none;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        /* Grid Area */
+        #grid-wrapper {
+            position: relative;
+            background: var(--reel-bg);
+            border: 4px solid #111;
+            border-radius: 8px;
+            padding: 5px;
             margin-bottom: 15px;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 30px;
-            box-shadow: inset 0 0 20px #000;
         }
 
-        .logo { 
-            font-family: 'Orbitron'; font-size: 28px; 
-            color: var(--neon-cyan); text-shadow: 0 0 15px var(--neon-cyan); 
-            letter-spacing: 3px; font-weight: 900;
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(6, 60px);
+            grid-template-rows: repeat(5, 60px);
+            gap: 4px;
         }
 
-        .status-panel { font-family: 'Orbitron'; text-align: right; min-width: 200px; }
-        .status-main { color: #fff; font-size: 16px; opacity: 0.8; letter-spacing: 1px; }
-        .bonus-info { color: var(--neon-magenta); font-weight: bold; display: none; animation: pulseText 1s infinite; }
-        #cabinet.mode-bonus .bonus-info { display: block; }
-        #cabinet.mode-bonus .status-main { display: none; }
-
-        /* --- 4. REEL SCREEN --- */
-        .screen-area {
-            flex-grow: 1;
-            background: #0a0a0a;
-            border: 8px solid #1a1a1a;
-            border-radius: 16px;
+        .cell {
+            width: 60px;
+            height: 60px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
             position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             overflow: hidden;
-            box-shadow: inset 0 0 60px #000;
         }
 
-        /* Overlays */
-        .scanlines {
-            position: absolute; inset: 0; pointer-events: none; z-index: 20; opacity: 0.4;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 2px, 3px 100%;
+        /* Golden Square Logic */
+        .cell.golden::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border: 2px solid var(--gold-color);
+            background: rgba(255, 215, 0, 0.15);
+            box-shadow: inset 0 0 10px var(--gold-color);
+            z-index: 0;
+            box-sizing: border-box;
+            animation: glow 2s infinite alternate;
         }
-        .glass-reflect {
-            position: absolute; inset: 0; pointer-events: none; z-index: 21;
-            background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.05) 40%, transparent 45%);
-        }
-        .alarm-layer {
-            position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0;
-            background: radial-gradient(circle, rgba(255,0,85,0.15) 0%, transparent 70%);
-            transition: opacity 0.5s;
-        }
-        #cabinet.mode-bonus .alarm-layer { opacity: 1; animation: alarmPulse 2s infinite; }
 
-        /* Reels */
-        .reels-wrapper {
-            display: flex; height: 100%; padding: 10px; justify-content: space-between; z-index: 5; position: relative;
-        }
-        .reel-col {
-            width: 19%; height: 100%; position: relative; overflow: hidden;
-            background: rgba(255,255,255,0.01); border: 1px solid #222; border-radius: 6px;
-        }
-        .reel-strip { width: 100%; position: absolute; top: 0; left: 0; will-change: transform; }
+        @keyframes glow { from { box-shadow: inset 0 0 5px var(--gold-color); } to { box-shadow: inset 0 0 15px var(--gold-color); } }
 
         /* Symbols */
         .symbol {
-            height: 140px; width: 100%;
-            display: flex; justify-content: center; align-items: center;
-            position: relative;
-        }
-        .symbol svg { width: 75%; height: 75%; filter: drop-shadow(0 0 5px rgba(255,255,255,0.1)); }
-        
-        /* Multiplier Badge */
-        .mult-badge {
-            position: absolute; bottom: 8px; right: 8px;
-            background: var(--neon-gold); color: #000;
-            font-weight: 900; font-size: 14px; padding: 3px 6px;
-            border-radius: 4px; box-shadow: 0 0 10px var(--neon-gold);
-            transform: scale(0); transition: transform 0.3s var(--ease-elastic);
-        }
-        .mult-badge.visible { transform: scale(1); }
-
-        /* --- 5. CONTROL DECK --- */
-        .control-deck {
-            height: 150px; background: #111; margin-top: 20px; border-top: 1px solid #333;
-            border-radius: 0 0 18px 18px; display: grid; grid-template-columns: 1fr 1.2fr 1fr;
-            gap: 15px; padding: 15px; z-index: 30;
+            width: 90%;
+            height: 90%;
+            z-index: 1;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s;
         }
 
-        .panel-group {
-            background: #080808; border: 1px solid #222; border-radius: 8px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 8px;
+        .symbol.falling { animation: dropIn 0.4s ease-out; }
+        .symbol.removed { transform: scale(0); opacity: 0; }
+        .symbol.win-anim { animation: winPop 0.3s ease-in-out 2; }
+
+        @keyframes dropIn { 0% { transform: translateY(-100px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+        @keyframes winPop { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
+        /* Coin Value Overlay */
+        .coin-val {
+            position: absolute;
+            font-size: 10px;
+            font-weight: bold;
+            color: #000;
+            z-index: 2;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
         }
 
-        .lbl { font-size: 10px; color: #666; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
-        .lcd-display { font-family: 'Orbitron'; color: var(--neon-cyan); font-size: 22px; text-shadow: 0 0 8px rgba(0,243,255,0.2); }
-
-        button { cursor: pointer; border: none; outline: none; transition: 0.15s; }
-        
-        /* Spin Button */
-        .spin-btn {
-            width: 90px; height: 90px; border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #444, #111);
-            border: 3px solid var(--neon-green); color: #fff;
-            font-family: 'Orbitron'; font-size: 18px; font-weight: 900;
-            box-shadow: 0 0 15px var(--neon-green), inset 0 0 10px rgba(0,255,65,0.2);
-        }
-        .spin-btn:active { transform: scale(0.95); box-shadow: 0 0 5px var(--neon-green); }
-        .spin-btn:disabled { filter: grayscale(1) brightness(0.5); cursor: not-allowed; }
-
-        .auto-toggle { 
-            margin-top: 8px; background: #222; color: #888; 
-            padding: 4px 12px; border-radius: 4px; font-size: 12px; border: 1px solid #444; 
-        }
-        .auto-toggle.active { background: var(--neon-cyan); color: #000; box-shadow: 0 0 10px var(--neon-cyan); border-color: #fff; }
-
-        /* Bet Controls */
-        .bet-row { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
-        .adj-btn { width: 30px; height: 30px; background: #333; color: #fff; border-radius: 4px; font-weight: bold; font-size: 18px; }
-        .adj-btn:hover { background: #555; }
-
-        /* Buy Bonus */
-        .buy-btn {
-            width: 100%; padding: 10px; margin-top: 5px;
-            background: linear-gradient(135deg, #b8860b 0%, var(--neon-gold) 100%);
-            color: #000; font-weight: 900; font-family: 'Orbitron'; border-radius: 6px;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); position: relative; overflow: hidden;
-        }
-        .buy-btn:hover { filter: brightness(1.1); }
-        .buy-sub { font-size: 9px; opacity: 0.8; display: block; }
-        
-        /* --- 6. WIN OVERLAY & PARTICLES --- */
-        .win-modal {
-            position: absolute; inset: 0; z-index: 100;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
-            opacity: 0; pointer-events: none; transition: opacity 0.3s;
-        }
-        .win-modal.active { opacity: 1; pointer-events: auto; }
-        
-        .win-title {
-            font-family: 'Orbitron'; font-size: 70px; font-weight: 900; color: #fff;
-            text-shadow: 0 0 20px var(--neon-gold), 0 0 50px var(--neon-magenta);
-            transform: scale(0.5); transition: transform 0.5s var(--ease-elastic);
-        }
-        .win-modal.active .win-title { transform: scale(1); }
-        
-        .win-amount { font-size: 40px; color: var(--neon-cyan); font-weight: bold; margin-top: 10px; font-family: 'Orbitron'; }
-
-        /* Particles */
-        .particle { position: absolute; border-radius: 50%; pointer-events: none; z-index: 101; animation: particlePop 1s forwards; }
-        @keyframes particlePop {
-            0% { transform: translate(0,0) scale(1); opacity: 1; }
-            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        /* UI Controls */
+        #ui-panel {
+            width: 100%;
+            background: var(--ui-bg);
+            padding: 15px;
+            border-radius: 8px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            border-top: 2px solid #444;
         }
 
-        /* Animations */
-        @keyframes alarmPulse { 0% {opacity:0.2} 50% {opacity:0.5} 100% {opacity:0.2} }
-        @keyframes spinKey { 0% {transform:rotate(0deg)} 100% {transform:rotate(360deg)} }
-        @keyframes pulseText { 0% {opacity:0.6} 50% {opacity:1} 100% {opacity:0.6} }
+        .stat-box {
+            display: flex;
+            flex-direction: column;
+        }
+        .label { font-size: 0.7rem; color: #888; text-transform: uppercase; }
+        .value { font-size: 1.1rem; font-weight: bold; font-family: monospace; color: #fff; }
+        .win-value { color: #4cd137; }
+
+        .controls {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            border: none;
+            border-radius: 5px;
+            padding: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: filter 0.2s;
+        }
+        button:hover { filter: brightness(1.1); }
+        button:active { transform: translateY(2px); }
+        button:disabled { filter: grayscale(1); cursor: not-allowed; }
+
+        #spin-btn { flex: 2; background: #4cd137; color: #000; font-size: 1.1rem; }
+        #buy-bonus-btn { flex: 1; background: var(--accent); color: #fff; font-size: 0.9rem; display: flex; flex-direction: column; align-items: center; line-height: 1; }
+        #buy-bonus-btn span { font-size: 0.6rem; margin-top: 3px; opacity: 0.8; }
+
+        .bet-control {
+            display: flex;
+            align-items: center;
+            background: #333;
+            border-radius: 5px;
+            padding: 0 5px;
+        }
+        .bet-btn { background: none; color: white; padding: 5px 10px; font-size: 1.2rem; }
+        #bet-amount { margin: 0 10px; font-family: monospace; width: 40px; text-align: center; }
+
+        /* Overlay Message */
+        #message-overlay {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            padding: 20px 40px;
+            border: 2px solid var(--gold-color);
+            border-radius: 10px;
+            text-align: center;
+            z-index: 100;
+            display: none;
+            pointer-events: none;
+        }
+        #message-overlay h2 { color: var(--gold-color); margin: 0; font-size: 2rem; }
+        #message-overlay p { font-size: 1.2rem; margin: 5px 0 0 0; }
 
     </style>
 </head>
 <body>
 
-<div id="cabinet">
-    <!-- Header -->
-    <div class="header-bar">
-        <div class="logo">NEON BANDIT</div>
-        <div class="status-panel">
-            <span class="status-main" id="msgMain">SYSTEM READY</span>
-            <span class="bonus-info" id="msgBonus">FREE SPINS: 0</span>
-        </div>
-    </div>
+    <div id="game-container">
+        <header>
+            <h1>Bandit's Alley</h1>
+            <div id="bonus-banner">FREE SPINS ACTIVE (<span id="fs-count">0</span>)</div>
+        </header>
 
-    <!-- Screen -->
-    <div class="screen-area">
-        <div class="scanlines"></div>
-        <div class="glass-reflect"></div>
-        <div class="alarm-layer"></div>
-        
-        <div class="reels-wrapper" id="reelsContainer">
-            <!-- Reels Injected JS -->
-        </div>
-
-        <div class="win-modal" id="winOverlay">
-            <div class="win-title" id="winTitle">BIG WIN</div>
-            <div class="win-amount" id="winAmount">0</div>
-        </div>
-    </div>
-
-    <!-- Controls -->
-    <div class="control-deck">
-        <!-- Bank -->
-        <div class="panel-group">
-            <span class="lbl">CREDITS</span>
-            <div class="lcd-display" id="dispCredits">2000</div>
-            <div class="bet-row">
-                <button class="adj-btn" onclick="Game.changeBet(-1)">-</button>
-                <div class="lcd-display" style="font-size:18px; min-width:40px; text-align:center;" id="dispBet">10</div>
-                <button class="adj-btn" onclick="Game.changeBet(1)">+</button>
+        <div id="grid-wrapper">
+            <div id="grid">
+                <!-- Cells generated by JS -->
+            </div>
+            <div id="message-overlay">
+                <h2 id="msg-title">BIG WIN</h2>
+                <p id="msg-val">1000</p>
             </div>
         </div>
 
-        <!-- Spin -->
-        <div class="panel-group" style="background:transparent; border:none; justify-content:flex-start;">
-            <button class="spin-btn" id="btnSpin" onclick="Game.spin()">SPIN</button>
-            <button class="auto-toggle" id="btnAuto" onclick="Game.toggleAuto()">AUTO: OFF</button>
-        </div>
+        <div id="ui-panel">
+            <div class="stat-box">
+                <span class="label">Balance</span>
+                <span class="value" id="balance-display">1000.00</span>
+            </div>
+            <div class="stat-box" style="align-items: flex-end;">
+                <span class="label">Total Win</span>
+                <span class="value win-value" id="win-display">0.00</span>
+            </div>
 
-        <!-- Features -->
-        <div class="panel-group">
-            <span class="lbl">LAST WIN</span>
-            <div class="lcd-display" id="dispWin">0</div>
-            <button class="buy-btn" id="btnBuy" onclick="Game.buyBonus()">
-                BUY HEIST
-                <span class="buy-sub">COST: 100x</span>
-            </button>
+            <div class="controls">
+                <div class="bet-control">
+                    <button class="bet-btn" onclick="changeBet(-1)">-</button>
+                    <span id="bet-amount">1</span>
+                    <button class="bet-btn" onclick="changeBet(1)">+</button>
+                </div>
+                <button id="spin-btn" onclick="spin()">Spin</button>
+                <button id="buy-bonus-btn" onclick="buyBonus()">
+                    Buy Bonus
+                    <span>100x Bet</span>
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
 <script>
+/** 
+ * CONFIGURATION & STATE 
+ */
+const CONFIG = {
+    rows: 5,
+    cols: 6,
+    minCluster: 5, // Minimum symbols to connect
+    animSpeed: 400,
+    paytable: {
+        '10': 0.1, 'J': 0.1, 'Q': 0.2, 'K': 0.3, 'A': 0.5,
+        'cheese': 1.0, 'beer': 1.5, 'baguette': 2.0, 'hat': 5.0
+    },
+    symbols: ['10', 'J', 'Q', 'K', 'A', 'cheese', 'beer', 'baguette', 'hat'],
+    weights: [15, 15, 12, 12, 10, 8, 6, 5, 3], // Probabilities corresponding to symbols
+    specialWeights: {
+        'fs': 0.02, // Chance to drop per cell fill
+        'rainbow': 0.015 
+    }
+};
+
+let state = {
+    grid: [], // 2D array of symbol strings
+    goldenGrid: [], // 2D boolean array
+    balance: 1000,
+    bet: 1,
+    currentWin: 0,
+    isSpinning: false,
+    bonusActive: false,
+    freeSpins: 0,
+    fsTriggersInRound: 0 // Track FS symbols landing
+};
+
+// DOM Elements
+const gridEl = document.getElementById('grid');
+const balEl = document.getElementById('balance-display');
+const winEl = document.getElementById('win-display');
+const betEl = document.getElementById('bet-amount');
+const spinBtn = document.getElementById('spin-btn');
+const buyBtn = document.getElementById('buy-bonus-btn');
+const bonusBanner = document.getElementById('bonus-banner');
+const fsCountEl = document.getElementById('fs-count');
+const msgOverlay = document.getElementById('message-overlay');
+const msgTitle = document.getElementById('msg-title');
+const msgVal = document.getElementById('msg-val');
+
 /**
- * ===========================================================
- * NEON BANDIT V5.0 - CORE ENGINE
- * ===========================================================
+ * SVG GENERATOR
+ * Creates inline SVG strings for all symbols.
+ */
+const SVGS = {
+    '10': `<svg viewBox="0 0 100 100"><text x="50" y="70" font-size="60" fill="#a8dadc" text-anchor="middle" font-weight="bold" stroke="black" stroke-width="2">10</text></svg>`,
+    'J': `<svg viewBox="0 0 100 100"><text x="50" y="70" font-size="60" fill="#457b9d" text-anchor="middle" font-weight="bold" stroke="black" stroke-width="2">J</text></svg>`,
+    'Q': `<svg viewBox="0 0 100 100"><text x="50" y="70" font-size="60" fill="#1d3557" text-anchor="middle" font-weight="bold" stroke="black" stroke-width="2">Q</text></svg>`,
+    'K': `<svg viewBox="0 0 100 100"><text x="50" y="70" font-size="60" fill="#e63946" text-anchor="middle" font-weight="bold" stroke="black" stroke-width="2">K</text></svg>`,
+    'A': `<svg viewBox="0 0 100 100"><text x="50" y="70" font-size="60" fill="#f1faee" text-anchor="middle" font-weight="bold" stroke="black" stroke-width="2">A</text></svg>`,
+    
+    'cheese': `<svg viewBox="0 0 100 100"><path d="M10,80 L90,80 L90,50 L50,20 L10,50 Z" fill="#f9c74f" stroke="black" stroke-width="3"/><circle cx="30" cy="60" r="5" fill="#f9844a"/><circle cx="60" cy="50" r="8" fill="#f9844a"/><circle cx="70" cy="70" r="4" fill="#f9844a"/></svg>`,
+    
+    'beer': `<svg viewBox="0 0 100 100"><path d="M25,30 L25,80 Q25,90 35,90 L65,90 Q75,90 75,80 L75,30 Z" fill="#f4a261" stroke="black" stroke-width="3"/><rect x="75" y="40" width="10" height="30" rx="5" fill="none" stroke="black" stroke-width="3"/><path d="M20,30 Q25,10 40,25 Q50,10 60,25 Q75,10 80,30 Z" fill="white" stroke="black" stroke-width="2"/></svg>`,
+    
+    'baguette': `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="40" ry="15" transform="rotate(-30 50 50)" fill="#e09f3e" stroke="black" stroke-width="3"/><path d="M35,45 L45,35 M50,55 L60,45" stroke="#6f4518" stroke-width="3"/></svg>`,
+    
+    'hat': `<svg viewBox="0 0 100 100"><rect x="25" y="40" width="50" height="40" fill="#222" stroke="white" stroke-width="2"/><rect x="10" y="80" width="80" height="10" rx="2" fill="#222" stroke="white" stroke-width="2"/><rect x="25" y="70" width="50" height="5" fill="#e63946"/></svg>`,
+    
+    'fs': `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#2a9d8f" stroke="white" stroke-width="3"/><text x="50" y="65" font-size="35" fill="white" text-anchor="middle" font-weight="bold">FS</text></svg>`,
+    
+    'rainbow': `<svg viewBox="0 0 100 100"><path d="M10,80 A40,40 0 0,1 90,80" fill="none" stroke="#e63946" stroke-width="5"/><path d="M15,80 A35,35 0 0,1 85,80" fill="none" stroke="#f4a261" stroke-width="5"/><path d="M20,80 A30,30 0 0,1 80,80" fill="none" stroke="#e9c46a" stroke-width="5"/><path d="M25,80 A25,25 0 0,1 75,80" fill="none" stroke="#2a9d8f" stroke-width="5"/><text x="50" y="95" font-size="14" text-anchor="middle" fill="white">RAINBOW</text></svg>`,
+
+    // Coin & Special Reveal SVGs
+    'coin_bronze': `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#cd7f32" stroke="#5c3a1e" stroke-width="3"/><circle cx="50" cy="50" r="30" fill="none" stroke="#5c3a1e" stroke-width="2" stroke-dasharray="5,5"/></svg>`,
+    'coin_silver': `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#c0c0c0" stroke="#666" stroke-width="3"/><circle cx="50" cy="50" r="30" fill="none" stroke="#666" stroke-width="2" stroke-dasharray="5,5"/></svg>`,
+    'coin_gold': `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#ffd700" stroke="#b8860b" stroke-width="3"/><circle cx="50" cy="50" r="30" fill="none" stroke="#b8860b" stroke-width="2" stroke-dasharray="5,5"/></svg>`,
+    'clover': `<svg viewBox="0 0 100 100"><path d="M50,50 Q30,20 50,10 Q70,20 50,50 Q80,30 90,50 Q80,70 50,50 Q70,80 50,90 Q30,80 50,50 Q20,70 10,50 Q20,30 50,50" fill="#2d6a4f" stroke="#d8f3dc" stroke-width="2"/></svg>`,
+    'pot': `<svg viewBox="0 0 100 100"><path d="M20,40 Q20,85 50,90 Q80,85 80,40 L20,40" fill="#000"/><ellipse cx="50" cy="40" rx="30" ry="10" fill="#ffd700"/><text x="50" y="70" font-size="12" fill="white" text-anchor="middle">COLLECT</text></svg>`
+};
+
+/**
+ * INITIALIZATION
+ */
+function init() {
+    // Create Grid DOM
+    for(let r=0; r<CONFIG.rows; r++) {
+        state.grid[r] = [];
+        state.goldenGrid[r] = [];
+        for(let c=0; c<CONFIG.cols; c++) {
+            let cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.id = `cell-${r}-${c}`;
+            gridEl.appendChild(cell);
+            state.grid[r][c] = getRandomSymbol();
+            state.goldenGrid[r][c] = false;
+            renderSymbol(r, c, state.grid[r][c], false);
+        }
+    }
+    updateUI();
+}
+
+/**
+ * GAME LOOP & MECHANICS
  */
 
-// 1. ASSETS (SVG Strings)
-const SVG = {
-    wild: `<svg viewBox="0 0 100 100" fill="none" stroke="#00f3ff" stroke-width="4"><path d="M20,30 L80,30 L90,50 L50,90 L10,50 Z" fill="rgba(0,243,255,0.15)"/><path d="M30,45 L40,45 M60,45 L70,45" stroke="#fff" stroke-width="6" stroke-linecap="round"/><text x="50" y="20" text-anchor="middle" fill="#fff" font-size="14" stroke="none" font-family="Orbitron">WILD</text></svg>`,
-    scat: `<svg viewBox="0 0 100 100" fill="none" stroke="#ff0055" stroke-width="4"><circle cx="50" cy="50" r="35"/><path d="M50,15 L50,50 L75,75"/><circle cx="50" cy="50" r="5" fill="#ff0055"/><text x="50" y="80" text-anchor="middle" fill="#ff0055" font-size="12" stroke="none" font-family="Orbitron">BONUS</text></svg>`,
-    h1:   `<svg viewBox="0 0 100 100" fill="none" stroke="#ffd700" stroke-width="3"><defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ffd700"/><stop offset="100%" stop-color="#b8860b"/></linearGradient></defs><path d="M20,35 L35,20 L65,20 L80,35 L50,85 Z" fill="url(#g1)" opacity="0.8"/><path d="M20,35 L80,35 M35,20 L50,85 L65,20" stroke="#fff" stroke-width="1" opacity="0.6"/></svg>`,
-    h2:   `<svg viewBox="0 0 100 100" fill="none" stroke="#00ff41" stroke-width="3"><rect x="25" y="30" width="50" height="40" rx="4" fill="rgba(0,255,65,0.1)"/><text x="50" y="55" text-anchor="middle" fill="#00ff41" font-size="24" stroke="none" font-family="sans-serif">$</text><path d="M15,35 L15,65 M85,35 L85,65" stroke-width="4"/></svg>`,
-    m1:   `<svg viewBox="0 0 100 100"><path d="M40,20 L40,70 M50,20 L50,70 M60,20 L60,70" stroke="#ff4500" stroke-width="8"/><rect x="35" y="40" width="30" height="10" fill="#111"/><path d="M50,20 L50,10 L60,5" stroke="#fff" stroke-width="2" fill="none"/></svg>`,
-    l1:   `<svg viewBox="0 0 100 100"><text x="50" y="65" text-anchor="middle" font-size="55" fill="#888" stroke="#fff" stroke-width="1" font-family="Orbitron">A</text></svg>`,
-    l2:   `<svg viewBox="0 0 100 100"><text x="50" y="65" text-anchor="middle" font-size="55" fill="#666" stroke="#fff" stroke-width="1" font-family="Orbitron">K</text></svg>`,
-    l3:   `<svg viewBox="0 0 100 100"><text x="50" y="65" text-anchor="middle" font-size="55" fill="#555" stroke="#fff" stroke-width="1" font-family="Orbitron">Q</text></svg>`,
-    l4:   `<svg viewBox="0 0 100 100"><text x="50" y="65" text-anchor="middle" font-size="55" fill="#444" stroke="#fff" stroke-width="1" font-family="Orbitron">J</text></svg>`
-};
+function getRandomSymbol() {
+    let rand = Math.random();
+    
+    // Check Specials
+    if (rand < CONFIG.specialWeights.fs) return 'fs';
+    if (rand < CONFIG.specialWeights.fs + CONFIG.specialWeights.rainbow) return 'rainbow';
 
-// 2. CONFIGURATION
-const CFG = {
-    reels: 5, rows: 3, symH: 140,
-    spinTime: 800, delay: 150,
-    bets: [10, 20, 50, 100, 200, 500],
-    syms: [
-        {id:'w', svg:SVG.wild, pay:0, type:'wild'},
-        {id:'s', svg:SVG.scat, pay:0, type:'scat'},
-        {id:'h1', svg:SVG.h1, pay:50, type:'high'},
-        {id:'h2', svg:SVG.h2, pay:30, type:'high'},
-        {id:'m1', svg:SVG.m1, pay:20, type:'mid'},
-        {id:'l1', svg:SVG.l1, pay:5, type:'low'},
-        {id:'l2', svg:SVG.l2, pay:4, type:'low'},
-        {id:'l3', svg:SVG.l3, pay:3, type:'low'},
-        {id:'l4', svg:SVG.l4, pay:2, type:'low'}
-    ],
-    weights: [0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 8, 8]
-};
+    // Weighted Standard Symbols
+    let totalWeight = CONFIG.weights.reduce((a,b)=>a+b,0);
+    let randomW = Math.random() * totalWeight;
+    let weightSum = 0;
+    
+    for(let i=0; i<CONFIG.symbols.length; i++) {
+        weightSum += CONFIG.weights[i];
+        if(randomW <= weightSum) return CONFIG.symbols[i];
+    }
+    return CONFIG.symbols[0];
+}
 
-// 3. AUDIO (Synthesizer)
-const Sfx = {
-    ctx: new (window.AudioContext || window.webkitAudioContext)(),
-    play(k) {
-        if(this.ctx.state==='suspended') this.ctx.resume();
-        const t=this.ctx.currentTime, o=this.ctx.createOscillator(), g=this.ctx.createGain();
-        o.connect(g); g.connect(this.ctx.destination);
-        switch(k) {
-            case 'spin':
-                o.type='triangle'; o.frequency.setValueAtTime(100,t); o.frequency.linearRampToValueAtTime(300,t+0.2);
-                g.gain.setValueAtTime(0.1,t); g.gain.linearRampToValueAtTime(0,t+0.2);
-                o.start(t); o.stop(t+0.2); break;
-            case 'stop':
-                o.type='square'; o.frequency.setValueAtTime(80,t); o.frequency.exponentialRampToValueAtTime(20,t+0.1);
-                g.gain.setValueAtTime(0.2,t); g.gain.exponentialRampToValueAtTime(0.01,t+0.15);
-                o.start(t); o.stop(t+0.15); break;
-            case 'win':
-                o.type='sine'; o.frequency.setValueAtTime(400,t); o.frequency.linearRampToValueAtTime(800,t+0.3);
-                g.gain.setValueAtTime(0.1,t); g.gain.linearRampToValueAtTime(0,t+0.4);
-                o.start(t); o.stop(t+0.4); break;
-            case 'bonus':
-                o.type='sawtooth'; o.frequency.setValueAtTime(200,t); o.frequency.linearRampToValueAtTime(100,t+1);
-                g.gain.setValueAtTime(0.2,t); g.gain.linearRampToValueAtTime(0,t+1);
-                o.start(t); o.stop(t+1); break;
+function renderSymbol(r, c, type, isFalling = false) {
+    const cell = document.getElementById(`cell-${r}-${c}`);
+    
+    // Handle Golden Square Visual
+    if(state.goldenGrid[r][c]) cell.classList.add('golden');
+    else cell.classList.remove('golden');
+
+    // Clear previous content
+    cell.innerHTML = '';
+    
+    if(type === null) return; // Empty cell
+
+    let div = document.createElement('div');
+    div.className = 'symbol';
+    if(isFalling) div.classList.add('falling');
+    div.innerHTML = SVGS[type] || '';
+    cell.appendChild(div);
+}
+
+async function spin() {
+    if(state.isSpinning) return;
+    
+    if(!state.bonusActive && state.balance < state.bet) {
+        alert("Insufficient Balance!");
+        return;
+    }
+
+    state.isSpinning = true;
+    state.currentWin = 0;
+    state.fsTriggersInRound = 0;
+    
+    // Deduct bet if not in bonus
+    if(!state.bonusActive) {
+        state.balance -= state.bet;
+        // Reset golden grid in base game
+        resetGoldenGrid(); 
+    } else {
+        state.freeSpins--;
+    }
+
+    updateUI();
+    updateControls();
+
+    // Clear Grid Animation
+    clearGridDOM();
+    await wait(100);
+
+    // Fill Grid Initially
+    for(let c=0; c<CONFIG.cols; c++) {
+        for(let r=0; r<CONFIG.rows; r++) {
+            state.grid[r][c] = getRandomSymbol();
         }
     }
-};
+    renderFullGrid(true);
+    await wait(500);
 
-// 4. GAME LOGIC
-const Game = {
-    state: 'IDLE', // IDLE, SPINNING, BONUS
-    credits: 5000, betIdx: 0, bet: 10, auto: false,
-    bonus: { active:false, spins:0, grid:[], win:0 },
-    reels: [], // DOM elements
-
-    init() {
-        this.buildReels();
-        this.updateUI();
-    },
-
-    buildReels() {
-        const c = document.getElementById('reelsContainer');
-        c.innerHTML = ''; this.reels = [];
-        for(let i=0; i<CFG.reels; i++) {
-            const col = document.createElement('div'); col.className='reel-col';
-            const strip = document.createElement('div'); strip.className='reel-strip';
-            strip.style.transform = `translateY(-${CFG.symH}px)`; // Hide top buffer
-            // Fill initial
-            for(let j=0; j<5; j++) strip.appendChild(this.mkSym(this.rndSym()));
-            col.appendChild(strip); c.appendChild(col);
-            this.reels.push(strip);
-        }
-    },
-
-    mkSym(d) {
-        const el = document.createElement('div'); el.className = 'symbol'; el.innerHTML = d.svg;
-        const bdg = document.createElement('div'); bdg.className = 'mult-badge'; el.appendChild(bdg);
-        return el;
-    },
-
-    rndSym() { return CFG.syms[CFG.weights[Math.floor(Math.random()*CFG.weights.length)]]; },
-
-    changeBet(d) {
-        if(this.state!=='IDLE') return;
-        this.betIdx = Math.max(0, Math.min(CFG.bets.length-1, this.betIdx+d));
-        this.bet = CFG.bets[this.betIdx];
-        this.updateUI();
-    },
-
-    toggleAuto() {
-        this.auto = !this.auto;
-        document.getElementById('btnAuto').className = this.auto ? 'auto-toggle active' : 'auto-toggle';
-        document.getElementById('btnAuto').textContent = this.auto ? "AUTO: ON" : "AUTO: OFF";
-        if(this.auto && this.state==='IDLE') this.spin();
-    },
-
-    buyBonus() {
-        if(this.state!=='IDLE') return;
-        const cost = this.bet * 100;
-        if(this.credits >= cost) {
-            this.credits -= cost;
-            this.updateUI();
-            this.spin(true);
-        } else { alert("INSUFFICIENT CREDITS"); }
-    },
-
-    spin(forceBonus=false) {
-        if(this.state==='SPINNING') return;
+    // Evaluation Loop (Cascades)
+    let keepCascading = true;
+    while(keepCascading) {
+        let winData = evaluateGrid(); // Check clusters
         
-        // Cost
-        if(!this.bonus.active && !forceBonus) {
-            if(this.credits < this.bet) { this.auto=false; this.updateUI(); alert("NO CREDITS"); return; }
-            this.credits -= this.bet;
-        }
+        if(winData.hasWin) {
+            state.currentWin += winData.winAmount;
+            
+            // Mark Golden Squares
+            winData.winningCells.forEach(pos => {
+                state.goldenGrid[pos.r][pos.c] = true;
+                // Highlight winning symbols
+                let cell = document.getElementById(`cell-${pos.r}-${pos.c}`);
+                if(cell.firstChild) cell.firstChild.classList.add('win-anim');
+            });
+            
+            updateUI();
+            await wait(600);
 
-        this.state = 'SPINNING';
-        document.getElementById('winOverlay').className = 'win-modal'; // Hide win
-        this.updateUI();
-        Sfx.play('spin');
+            // Remove Winning Symbols + Super Cascade (All of same type)
+            let typesToRemove = [...winData.winningTypes];
+            
+            // Collect all cells to remove (Cluster + Same Type elsewhere)
+            let removalSet = new Set();
+            
+            // First, add the winning cluster cells
+            winData.winningCells.forEach(p => removalSet.add(`${p.r},${p.c}`));
 
-        // Data Gen
-        const grid = [];
-        for(let i=0; i<CFG.reels; i++) {
-            let col = [];
-            for(let j=0; j<CFG.rows; j++) col.push(this.rndSym());
-            grid.push(col);
-        }
-        if(forceBonus) {
-            const s = CFG.syms.find(x=>x.id==='s');
-            grid[0][1]=s; grid[2][1]=s; grid[4][1]=s;
-        }
-
-        // Animation
-        this.reels.forEach((r, i) => {
-            r.style.transition = 'transform 0.2s ease-in';
-            r.style.transform = `translateY(100px)`; // Windup
-            setTimeout(() => {
-                r.style.transition = 'none';
-                r.style.transform = `translateY(-1200px)`; // Snap up
-                r.innerHTML = ''; // Rebuild
-                r.appendChild(this.mkSym(this.rndSym())); // Buffer
-                grid[i].forEach(s=>r.appendChild(this.mkSym(s)));
-                r.appendChild(this.mkSym(this.rndSym())); // Buffer
-
-                // Land
-                setTimeout(() => {
-                    r.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
-                    r.style.transform = `translateY(-${CFG.symH}px)`;
-                    Sfx.play('stop');
-                    // Render Multipliers
-                    if(this.bonus.active) {
-                         for(let row=0; row<3; row++) {
-                            let m = this.bonus.grid[i][row];
-                            if(m > 1) {
-                                let bdg = r.children[row+1].querySelector('.mult-badge');
-                                bdg.textContent = 'x'+m; bdg.classList.add('visible');
-                            }
-                         }
+            // Super Cascade: Find all other instances of winning types
+            for(let r=0; r<CONFIG.rows; r++) {
+                for(let c=0; c<CONFIG.cols; c++) {
+                    if(typesToRemove.includes(state.grid[r][c])) {
+                        removalSet.add(`${r},${c}`);
+                        // Super cascade also creates golden squares
+                        state.goldenGrid[r][c] = true; 
                     }
-                }, 50);
-            }, CFG.spinTime + (i*CFG.delay));
-        });
-
-        // Evaluate
-        setTimeout(() => this.evaluate(grid), CFG.spinTime + (CFG.reels*CFG.delay) + 400);
-    },
-
-    evaluate(grid) {
-        let win = 0, scatters = 0;
-        grid.flat().forEach(s => { if(s.id==='s') scatters++; });
-
-        // Line Logic (Any 3+ on rows)
-        for(let r=0; r<CFG.rows; r++) {
-            let rowSyms = grid.map(c=>c[r]);
-            let match=1, first=rowSyms[0], eff=first.id==='w'?null:first.id;
-            for(let c=1; c<CFG.reels; c++) {
-                let curr=rowSyms[c];
-                if(curr.id==='w') match++;
-                else if(eff===null) { eff=curr.id; match++; }
-                else if(curr.id===eff) match++;
-                else break;
-            }
-            if(match>=3) {
-                let sym = eff ? CFG.syms.find(x=>x.id===eff) : CFG.syms[0];
-                let base = sym.pay * (match-2) * (this.bet/10);
-                if(this.bonus.active) {
-                    let mult=1;
-                    for(let c=0; c<match; c++) if(this.bonus.grid[c][r]>1) mult+=this.bonus.grid[c][r];
-                    base *= mult;
                 }
-                win += base;
             }
-        }
 
-        // Bonus Updates
-        if(this.bonus.active) {
-            this.bonus.spins--;
-            document.getElementById('msgBonus').textContent = "FREE SPINS: "+this.bonus.spins;
-            // Increment Multipliers
-            for(let c=0; c<5; c++) for(let r=0; r<3; r++) if(grid[c][r].id==='w') this.bonus.grid[c][r]++;
-        }
+            // Visual Remove
+            removalSet.forEach(key => {
+                let [r,c] = key.split(',').map(Number);
+                let cell = document.getElementById(`cell-${r}-${c}`);
+                if(cell.firstChild) cell.firstChild.classList.add('removed');
+                state.grid[r][c] = null; // Logic remove
+            });
 
-        // Bonus Trigger
-        if(scatters>=3) {
-            if(!this.bonus.active) {
-                this.state = 'IDLE'; // Reset state logic before switch
-                this.startBonus(); 
-                return;
-            } else {
-                this.bonus.spins += 2;
-                document.getElementById('msgMain').textContent = "RETRIGGER! +2 SPINS";
-                Sfx.play('bonus');
-            }
-        }
-
-        // Payout
-        if(win > 0) {
-            this.credits += win;
-            Sfx.play('win');
-            this.showWin(win);
-            if(win > this.bet*15) this.spawnParticles();
-        }
-
-        // Loop Logic
-        this.state = 'IDLE';
-        this.updateUI();
-
-        if(this.bonus.active) {
-            if(this.bonus.spins > 0) setTimeout(()=>this.spin(), 1200);
-            else setTimeout(()=>this.endBonus(), 1500);
-        } else if(this.auto && this.credits >= this.bet) {
-            setTimeout(()=>this.spin(), 1000);
-        } else if(this.auto) {
-            this.toggleAuto(); // Stop
-        }
-    },
-
-    startBonus() {
-        this.bonus.active = true;
-        this.bonus.spins = 10;
-        this.bonus.grid = Array(5).fill().map(()=>[1,1,1]); // 5x3 grid
-        document.getElementById('cabinet').classList.add('mode-bonus');
-        document.getElementById('msgBonus').textContent = "FREE SPINS: 10";
-        Sfx.play('bonus');
-        // Start spin loop after delay
-        setTimeout(() => this.spin(), 2000);
-    },
-
-    endBonus() {
-        this.bonus.active = false;
-        document.getElementById('cabinet').classList.remove('mode-bonus');
-        document.getElementById('msgMain').textContent = "HEIST COMPLETE";
-        // Clear Visuals
-        document.querySelectorAll('.mult-badge').forEach(b => b.classList.remove('visible'));
-        this.state = 'IDLE';
-        this.updateUI();
-        if(this.auto) setTimeout(()=>this.spin(), 1000);
-    },
-
-    showWin(amt) {
-        document.getElementById('winTitle').textContent = this.bonus.active ? "HEIST WIN" : (amt>this.bet*20?"BIG WIN":"WINNER");
-        document.getElementById('winAmount').textContent = Math.floor(amt);
-        document.getElementById('winOverlay').className = 'win-modal active';
-        document.getElementById('dispWin').textContent = Math.floor(amt);
-        setTimeout(() => document.getElementById('winOverlay').className = 'win-modal', 2000);
-    },
-
-    updateUI() {
-        document.getElementById('dispCredits').textContent = Math.floor(this.credits);
-        document.getElementById('dispBet').textContent = this.bet;
-        const btnSpin = document.getElementById('btnSpin');
-        btnSpin.disabled = (this.state==='SPINNING');
-        const buyCost = this.bet*100;
-        document.getElementById('btnBuy').style.opacity = (this.credits>=buyCost && this.state==='IDLE') ? '1':'0.5';
-    },
-
-    spawnParticles() {
-        for(let i=0; i<30; i++) {
-            const p = document.createElement('div'); p.className='particle';
-            p.style.width = p.style.height = (Math.random()*10+5)+'px';
-            p.style.background = `hsl(${Math.random()*60+40}, 100%, 50%)`;
-            p.style.left='50%'; p.style.top='50%';
-            const angle = Math.random()*Math.PI*2, dist = Math.random()*300+100;
-            p.style.setProperty('--tx', Math.cos(angle)*dist+'px');
-            p.style.setProperty('--ty', Math.sin(angle)*dist+'px');
-            document.body.appendChild(p);
-            setTimeout(()=>p.remove(), 1000);
+            await wait(300);
+            renderFullGrid(false); // Update golden squares visual
+            
+            // Gravity & Refill
+            await applyGravity();
+            
+        } else {
+            keepCascading = false;
         }
     }
-};
 
-window.onload = () => Game.init();
+    // Check Rainbow Feature after cascades end
+    if(hasRainbow()) {
+        await activateRainbowFeature();
+    }
+
+    // Check Bonus Trigger (Accumulated FS symbols)
+    // Note: FS symbols aren't removed by clusters usually, but if they stick we count them.
+    // Simple logic: scan grid for FS symbols at end of round
+    let fsCount = countSymbols('fs');
+    if(fsCount >= 3) {
+        await triggerBonus();
+    }
+
+    // Bonus Mode Logic
+    if(state.bonusActive) {
+        if(state.freeSpins <= 0) {
+            endBonus();
+        }
+    }
+
+    state.isSpinning = false;
+    updateControls();
+}
+
+function evaluateGrid() {
+    let visited = Array(CONFIG.rows).fill(0).map(() => Array(CONFIG.cols).fill(false));
+    let totalRoundWin = 0;
+    let winningTypes = new Set();
+    let winningCells = []; // {r, c}
+
+    // Helper for DFS
+    function getCluster(r, c, type) {
+        let stack = [[r,c]];
+        let cluster = [];
+        while(stack.length > 0) {
+            let [cr, cc] = stack.pop();
+            if(cr < 0 || cr >= CONFIG.rows || cc < 0 || cc >= CONFIG.cols) continue;
+            if(visited[cr][cc]) continue;
+            if(state.grid[cr][cc] !== type) continue;
+
+            visited[cr][cc] = true;
+            cluster.push({r: cr, c: cc});
+
+            stack.push([cr+1, cc]);
+            stack.push([cr-1, cc]);
+            stack.push([cr, cc+1]);
+            stack.push([cr, cc-1]);
+        }
+        return cluster;
+    }
+
+    let hasWin = false;
+
+    for(let r=0; r<CONFIG.rows; r++) {
+        for(let c=0; c<CONFIG.cols; c++) {
+            if(!visited[r][c]) {
+                let type = state.grid[r][c];
+                // Ignore specials for cluster pays
+                if(type && type !== 'fs' && type !== 'rainbow' && !type.startsWith('coin')) {
+                    let cluster = getCluster(r, c, type);
+                    if(cluster.length >= CONFIG.minCluster) {
+                        hasWin = true;
+                        winningTypes.add(type);
+                        winningCells.push(...cluster);
+                        // Calc win: Base * (ClusterSize - 4) * Bet
+                        let symVal = CONFIG.paytable[type] || 0;
+                        let win = symVal * (cluster.length - 4) * 0.5 * state.bet; // Simplified math
+                        if(cluster.length > 10) win *= 1.5;
+                        totalRoundWin += win;
+                    }
+                }
+            }
+        }
+    }
+
+    return { hasWin, winAmount: totalRoundWin, winningTypes, winningCells };
+}
+
+async function applyGravity() {
+    // Move symbols down
+    for(let c=0; c<CONFIG.cols; c++) {
+        let writeRow = CONFIG.rows - 1;
+        for(let r=CONFIG.rows - 1; r >= 0; r--) {
+            if(state.grid[r][c] !== null) {
+                state.grid[writeRow][c] = state.grid[r][c];
+                if(writeRow !== r) state.grid[r][c] = null;
+                writeRow--;
+            }
+        }
+        // Fill top with new symbols
+        for(let r=writeRow; r >= 0; r--) {
+            state.grid[r][c] = getRandomSymbol();
+        }
+    }
+    renderFullGrid(true); // Render with falling animation
+    await wait(400);
+}
+
+function hasRainbow() {
+    for(let r=0; r<CONFIG.rows; r++) {
+        for(let c=0; c<CONFIG.cols; c++) {
+            if(state.grid[r][c] === 'rainbow') return true;
+        }
+    }
+    return false;
+}
+
+function countSymbols(type) {
+    let count = 0;
+    for(let r=0; r<CONFIG.rows; r++) {
+        for(let c=0; c<CONFIG.cols; c++) {
+            if(state.grid[r][c] === type) count++;
+        }
+    }
+    return count;
+}
+
+/**
+ * RAINBOW & GOLDEN SQUARE FEATURE
+ */
+async function activateRainbowFeature() {
+    showMsg("RAINBOW ACTIVE", "");
+    await wait(1000);
+    hideMsg();
+
+    // 1. Reveal Phase: Turn all Golden Squares into Coins/Specials
+    let activeCells = [];
+    for(let r=0; r<CONFIG.rows; r++) {
+        for(let c=0; c<CONFIG.cols; c++) {
+            if(state.goldenGrid[r][c]) {
+                let reveal = getRainbowReveal();
+                // Place object with value for calculation
+                state.grid[r][c] = reveal; 
+                activeCells.push({r,c, type: reveal.type, val: reveal.val});
+                
+                // Render Special Symbol
+                renderSymbol(r, c, reveal.svgKey);
+                // Add text overlay
+                let cell = document.getElementById(`cell-${r}-${c}`);
+                if(reveal.type === 'coin' || reveal.type === 'clover') {
+                    let span = document.createElement('span');
+                    span.className = 'coin-val';
+                    span.innerText = reveal.type === 'clover' ? `x${reveal.val}` : `${reveal.val}x`;
+                    cell.appendChild(span);
+                }
+            }
+        }
+    }
+    await wait(800);
+
+    // 2. Clover Logic (Multipliers) - Multiplies adjacent coins/pots
+    // Need to process grid logic
+    let totalRainbowWin = 0;
+    
+    // Process Clovers first
+    activeCells.filter(x => x.type === 'clover').forEach(clover => {
+        getNeighbors(clover.r, clover.c).forEach(n => {
+            let target = activeCells.find(x => x.r === n.r && x.c === n.c);
+            if(target && (target.type === 'coin' || target.type === 'pot')) {
+                target.val *= clover.val;
+                updateCellText(target.r, target.c, target.val);
+            }
+        });
+    });
+    await wait(500);
+
+    // Process Pots (Collectors) - Collects adjacent coins/pots
+    let pots = activeCells.filter(x => x.type === 'pot');
+    // Simple logic: Pot sums adjacent, sets neighbors to 0? 
+    // Standard mechanics: Pot collects value, keeps it. Neighbor stays? 
+    // Usually Pot collects and clears neighbor. Let's sum adjacent coins.
+    pots.forEach(pot => {
+        let collected = 0;
+        getNeighbors(pot.r, pot.c).forEach(n => {
+            let target = activeCells.find(x => x.r === n.r && x.c === n.c);
+            if(target && target.type === 'coin') {
+                collected += target.val;
+                // Visual: nullify coin? Let's keep it for show, but Pot gets value.
+            }
+        });
+        pot.val += collected;
+        // Update pot text (if we added one, which we didn't in render, add now)
+        updateCellText(pot.r, pot.c, pot.val);
+    });
+    await wait(500);
+
+    // 3. Calculate Total
+    activeCells.forEach(cell => {
+        if(cell.type === 'coin' || cell.type === 'pot') {
+            totalRainbowWin += cell.val * state.bet;
+        }
+    });
+
+    if(totalRainbowWin > 0) {
+        state.currentWin += totalRainbowWin;
+        updateUI();
+        showMsg("FEATURE WIN", totalRainbowWin.toFixed(2));
+        await wait(1500);
+        hideMsg();
+    }
+}
+
+function getRainbowReveal() {
+    let r = Math.random();
+    if(r < 0.65) {
+        // Bronze Coin (0.2x - 4x)
+        return { type: 'coin', svgKey: 'coin_bronze', val: (Math.random()*3.8 + 0.2).toFixed(1) };
+    } else if (r < 0.85) {
+        // Silver Coin (5x - 20x)
+        return { type: 'coin', svgKey: 'coin_silver', val: Math.floor(Math.random()*15 + 5) };
+    } else if (r < 0.92) {
+        // Gold Coin (25x - 100x)
+        return { type: 'coin', svgKey: 'coin_gold', val: Math.floor(Math.random()*75 + 25) };
+    } else if (r < 0.97) {
+        // Clover (2x - 10x)
+        return { type: 'clover', svgKey: 'clover', val: Math.floor(Math.random()*8 + 2) };
+    } else {
+        // Pot
+        return { type: 'pot', svgKey: 'pot', val: 0 }; // Starts at 0, collects
+    }
+}
+
+function getNeighbors(r, c) {
+    let n = [];
+    if(r>0) n.push({r:r-1, c:c});
+    if(r<CONFIG.rows-1) n.push({r:r+1, c:c});
+    if(c>0) n.push({r:r, c:c-1});
+    if(c<CONFIG.cols-1) n.push({r:r, c:c+1});
+    return n;
+}
+
+function updateCellText(r, c, val) {
+    let cell = document.getElementById(`cell-${r}-${c}`);
+    let span = cell.querySelector('.coin-val');
+    if(!span) {
+        span = document.createElement('span');
+        span.className = 'coin-val';
+        cell.appendChild(span);
+    }
+    span.innerText = parseFloat(val).toFixed(1) + 'x';
+}
+
+/**
+ * BONUS & BUY FEATURE
+ */
+async function triggerBonus() {
+    showMsg("BONUS TRIGGERED!", "8 FREE SPINS");
+    await wait(2000);
+    hideMsg();
+    
+    state.bonusActive = true;
+    state.freeSpins += 8;
+    bonusBanner.style.display = 'block';
+    updateUI();
+}
+
+function endBonus() {
+    state.bonusActive = false;
+    bonusBanner.style.display = 'none';
+    resetGoldenGrid();
+    renderFullGrid(false);
+    showMsg("BONUS COMPLETED", `Total: ${state.currentWin.toFixed(2)}`);
+    setTimeout(hideMsg, 2000);
+}
+
+function buyBonus() {
+    let cost = state.bet * 100;
+    if(state.balance >= cost) {
+        state.balance -= cost;
+        state.bonusActive = true;
+        state.freeSpins = 8;
+        
+        // Force UI update
+        updateUI();
+        bonusBanner.style.display = 'block';
+        
+        // Trigger Start
+        showMsg("BONUS BOUGHT", "Good Luck!");
+        setTimeout(() => {
+            hideMsg();
+            spin();
+        }, 1500);
+    } else {
+        alert("Not enough balance!");
+    }
+}
+
+/**
+ * HELPERS & UI
+ */
+function renderFullGrid(animate = false) {
+    for(let r=0; r<CONFIG.rows; r++) {
+        for(let c=0; c<CONFIG.cols; c++) {
+            renderSymbol(r, c, state.grid[r][c], animate);
+        }
+    }
+}
+
+function clearGridDOM() {
+    let cells = document.querySelectorAll('.symbol');
+    cells.forEach(el => el.remove());
+}
+
+function resetGoldenGrid() {
+    for(let r=0; r<CONFIG.rows; r++) {
+        for(let c=0; c<CONFIG.cols; c++) state.goldenGrid[r][c] = false;
+    }
+}
+
+function changeBet(delta) {
+    if(state.isSpinning) return;
+    let newBet = state.bet + delta;
+    if(newBet >= 1 && newBet <= 100) state.bet = newBet;
+    updateUI();
+}
+
+function updateUI() {
+    balEl.innerText = state.balance.toFixed(2);
+    winEl.innerText = state.currentWin.toFixed(2);
+    betEl.innerText = state.bet;
+    fsCountEl.innerText = state.freeSpins;
+}
+
+function updateControls() {
+    spinBtn.disabled = state.isSpinning;
+    buyBtn.disabled = state.isSpinning || state.bonusActive;
+    document.querySelectorAll('.bet-btn').forEach(b => b.disabled = state.isSpinning);
+}
+
+function showMsg(title, val) {
+    msgTitle.innerText = title;
+    msgVal.innerText = val;
+    msgOverlay.style.display = 'block';
+}
+
+function hideMsg() {
+    msgOverlay.style.display = 'none';
+}
+
+const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Start
+init();
+
 </script>
 </body>
 </html>
