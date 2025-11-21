@@ -3,828 +3,817 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Bandit's Heist - Cluster Slot</title>
+    <title>The Bandit's Heist V2</title>
+    <!-- Western Font for Theme -->
+    <link href="https://fonts.googleapis.com/css2?family=Rye&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #1a1510;
-            --cabinet-color: #2e241b;
-            --reel-bg: #3d3226;
-            --gold-color: #ffcc00;
-            --ui-bg: #111;
-            --accent: #e76f51;
+            --bg-dark: #1a120b;
+            --bg-light: #2e2015;
+            --grid-bg: #0f0b08;
+            --gold-glow: #ffb703;
+            --gold-inner: #fb8500;
+            --accent: #d62828;
+            --text-color: #e5e5e5;
+            --ui-panel: #221811;
         }
 
         body {
             margin: 0;
-            background-color: var(--bg-color);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: white;
+            background: radial-gradient(circle at center, var(--bg-light), var(--bg-dark));
+            font-family: 'Rye', serif;
+            color: var(--text-color);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             overflow: hidden;
+            user-select: none;
         }
 
-        #game-container {
+        #cabinet {
             position: relative;
             width: 100%;
-            max-width: 600px;
-            background: var(--cabinet-color);
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            max-width: 650px;
+            background: linear-gradient(180deg, #463426, #211710);
+            border: 4px solid #111;
+            border-radius: 15px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9), inset 0 0 60px rgba(0,0,0,0.5);
             padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        /* Header & Bonus Indicator */
+        /* --- HEADER --- */
         header {
             width: 100%;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
-        }
-
-        h1 { margin: 0; font-size: 1.5rem; color: var(--gold-color); text-transform: uppercase; text-shadow: 0 2px 0 #000; }
-        
-        #bonus-banner {
-            background: linear-gradient(45deg, #e76f51, #d62828);
-            padding: 5px 15px;
-            border-radius: 5px;
-            font-weight: bold;
-            display: none;
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-
-        /* Grid Area */
-        #grid-wrapper {
-            position: relative;
-            background: var(--reel-bg);
-            border: 4px solid #111;
-            border-radius: 8px;
-            padding: 5px;
             margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #5c4033;
+        }
+
+        .logo { font-size: 1.8rem; color: var(--gold-glow); text-shadow: 2px 2px 0 #000; letter-spacing: 1px; }
+        
+        .bonus-indicator {
+            background: linear-gradient(90deg, #d62828, #9e2a2b);
+            padding: 5px 20px;
+            border-radius: 20px;
+            font-family: 'Roboto Mono', monospace;
+            font-weight: bold;
+            font-size: 0.9rem;
+            box-shadow: 0 0 15px rgba(214, 40, 40, 0.6);
+            display: none;
+            animation: pulse 1.5s infinite;
+        }
+
+        /* --- GRID --- */
+        #grid-frame {
+            position: relative;
+            background: var(--grid-bg);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: inset 0 0 30px #000;
+            border: 2px solid #5c4033;
         }
 
         #grid {
             display: grid;
-            grid-template-columns: repeat(6, 60px);
-            grid-template-rows: repeat(5, 60px);
-            gap: 4px;
+            grid-template-columns: repeat(6, 70px);
+            grid-template-rows: repeat(5, 70px);
+            gap: 6px;
         }
 
+        /* CELL STYLING */
         .cell {
-            width: 60px;
-            height: 60px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 4px;
+            width: 70px;
+            height: 70px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
             position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
         }
 
-        /* Golden Square Logic */
-        .cell.golden::after {
+        /* THE GOLDEN SQUARE */
+        .cell.golden::before {
             content: '';
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            border: 2px solid var(--gold-color);
-            background: rgba(255, 215, 0, 0.15);
-            box-shadow: inset 0 0 10px var(--gold-color);
+            inset: 2px;
+            border: 2px solid var(--gold-glow);
+            background: radial-gradient(circle, rgba(255, 183, 3, 0.15) 0%, transparent 70%);
+            box-shadow: inset 0 0 10px var(--gold-inner);
+            border-radius: 6px;
             z-index: 0;
-            box-sizing: border-box;
-            animation: glow 2s infinite alternate;
+            animation: goldenPulse 2s infinite alternate;
         }
-
-        @keyframes glow { from { box-shadow: inset 0 0 5px var(--gold-color); } to { box-shadow: inset 0 0 15px var(--gold-color); } }
-
-        /* Symbols */
+        
+        /* SYMBOLS */
         .symbol {
-            width: 90%;
-            height: 90%;
-            z-index: 1;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s;
+            width: 85%;
+            height: 85%;
+            z-index: 2;
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.6));
         }
 
-        .symbol.falling { animation: dropIn 0.4s ease-out; }
-        .symbol.removed { transform: scale(0); opacity: 0; }
-        .symbol.win-anim { animation: winPop 0.3s ease-in-out 2; }
+        /* ANIMATIONS */
+        @keyframes goldenPulse { from { opacity: 0.6; box-shadow: inset 0 0 5px var(--gold-glow); } to { opacity: 1; box-shadow: inset 0 0 20px var(--gold-glow); } }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        
+        /* DROP ANIMATION (Staggered via JS) */
+        .drop-anim { animation: dropBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; opacity: 0; transform: translateY(-100px); }
+        @keyframes dropBounce { 0% { opacity: 0; transform: translateY(-150px); } 60% { opacity: 1; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
 
-        @keyframes dropIn { 0% { transform: translateY(-100px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
-        @keyframes winPop { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        /* FLIP REVEAL (For Coins) */
+        .flip-in { animation: flipReveal 0.6s ease-out forwards; }
+        @keyframes flipReveal { 0% { transform: scaleX(0); opacity: 0.5; } 50% { transform: scaleX(1.1); } 100% { transform: scaleX(1); } }
 
-        /* Coin Value Overlay */
-        .coin-val {
+        /* WIN POP */
+        .win-pop { animation: pop 0.3s ease-in-out 2; }
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.2) rotate(5deg); } 100% { transform: scale(1); } }
+
+        /* COIN OVERLAY TEXT */
+        .val-overlay {
             position: absolute;
+            bottom: -5px; right: -5px;
+            background: #000;
+            color: var(--gold-glow);
+            border: 1px solid var(--gold-glow);
+            padding: 1px 4px;
+            border-radius: 4px;
+            font-family: 'Roboto Mono', monospace;
             font-size: 10px;
             font-weight: bold;
-            color: #000;
-            z-index: 2;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
+            z-index: 5;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.8);
         }
 
-        /* UI Controls */
+        /* --- UI CONTROLS --- */
         #ui-panel {
             width: 100%;
-            background: var(--ui-bg);
+            margin-top: 15px;
+            background: var(--ui-panel);
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 10px;
+            border-top: 3px solid #5c4033;
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            border-top: 2px solid #444;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            align-items: center;
         }
 
-        .stat-box {
-            display: flex;
-            flex-direction: column;
-        }
-        .label { font-size: 0.7rem; color: #888; text-transform: uppercase; }
-        .value { font-size: 1.1rem; font-weight: bold; font-family: monospace; color: #fff; }
-        .win-value { color: #4cd137; }
+        .stat { display: flex; flex-direction: column; justify-content: center; }
+        .stat-label { font-size: 0.7rem; color: #aaa; font-family: 'Roboto Mono'; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-val { font-size: 1.2rem; color: #fff; font-family: 'Roboto Mono'; font-weight: bold; }
+        .win-txt { color: #2a9d8f; text-shadow: 0 0 5px rgba(42, 157, 143, 0.5); }
 
-        .controls {
+        .action-area {
             grid-column: 1 / -1;
             display: flex;
             gap: 10px;
-            margin-top: 10px;
+            justify-content: space-between;
         }
 
         button {
+            font-family: 'Rye', serif;
             border: none;
-            border-radius: 5px;
-            padding: 12px;
-            font-weight: bold;
+            border-radius: 6px;
             cursor: pointer;
             text-transform: uppercase;
-            transition: filter 0.2s;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.5);
         }
-        button:hover { filter: brightness(1.1); }
-        button:active { transform: translateY(2px); }
-        button:disabled { filter: grayscale(1); cursor: not-allowed; }
+        button:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.5); }
+        button:disabled { filter: grayscale(1) opacity(0.6); cursor: not-allowed; transform: none; box-shadow: none; }
 
-        #spin-btn { flex: 2; background: #4cd137; color: #000; font-size: 1.1rem; }
-        #buy-bonus-btn { flex: 1; background: var(--accent); color: #fff; font-size: 0.9rem; display: flex; flex-direction: column; align-items: center; line-height: 1; }
-        #buy-bonus-btn span { font-size: 0.6rem; margin-top: 3px; opacity: 0.8; }
+        .btn-spin {
+            flex: 2;
+            padding: 15px;
+            font-size: 1.4rem;
+            background: linear-gradient(to bottom, #4cd137, #44bd32);
+            color: #000;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+        }
 
-        .bet-control {
+        .btn-buy {
+            flex: 1;
+            background: linear-gradient(to bottom, #e09f3e, #ca7a07);
+            color: #221811;
+            font-size: 0.9rem;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 5px;
+        }
+        .btn-buy span { font-family: 'Roboto Mono'; font-size: 0.7rem; opacity: 0.8; margin-top: 2px; }
+
+        .bet-box {
             display: flex;
             align-items: center;
-            background: #333;
+            background: #111;
             border-radius: 5px;
-            padding: 0 5px;
+            padding: 2px;
+            border: 1px solid #444;
         }
-        .bet-btn { background: none; color: white; padding: 5px 10px; font-size: 1.2rem; }
-        #bet-amount { margin: 0 10px; font-family: monospace; width: 40px; text-align: center; }
+        .bet-btn { background: #333; color: white; width: 30px; height: 30px; font-size: 1rem; padding: 0; display: flex; align-items: center; justify-content: center; }
+        #bet-display { width: 40px; text-align: center; font-family: 'Roboto Mono'; color: white; }
 
-        /* Overlay Message */
-        #message-overlay {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9);
-            padding: 20px 40px;
-            border: 2px solid var(--gold-color);
-            border-radius: 10px;
-            text-align: center;
-            z-index: 100;
-            display: none;
-            pointer-events: none;
+        /* Auto Spin Toggle */
+        .auto-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #111;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #444;
+            cursor: pointer;
         }
-        #message-overlay h2 { color: var(--gold-color); margin: 0; font-size: 2rem; }
-        #message-overlay p { font-size: 1.2rem; margin: 5px 0 0 0; }
+        .auto-label { font-size: 0.7rem; font-family: 'Roboto Mono'; color: #aaa; }
+        .toggle-switch {
+            width: 30px; height: 16px; background: #333; border-radius: 10px; position: relative; transition: 0.3s;
+        }
+        .toggle-switch::after {
+            content: ''; position: absolute; left: 2px; top: 2px; width: 12px; height: 12px; background: #fff; border-radius: 50%; transition: 0.3s;
+        }
+        .auto-active .toggle-switch { background: #4cd137; }
+        .auto-active .toggle-switch::after { left: 16px; }
+
+        /* MODAL */
+        #modal-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.85);
+            display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+        }
+        #modal-title { font-size: 3rem; color: var(--gold-glow); margin: 0; text-shadow: 0 0 20px var(--gold-glow); }
+        #modal-val { font-family: 'Roboto Mono'; font-size: 2rem; color: #fff; margin-top: 10px; }
 
     </style>
 </head>
 <body>
 
-    <div id="game-container">
+    <div id="cabinet">
         <header>
-            <h1>Bandit's Alley</h1>
-            <div id="bonus-banner">FREE SPINS ACTIVE (<span id="fs-count">0</span>)</div>
+            <div class="logo">BANDIT'S BOUNTY</div>
+            <div class="bonus-indicator" id="fs-indicator">BONUS ROUND: <span id="fs-cnt">0</span></div>
         </header>
 
-        <div id="grid-wrapper">
-            <div id="grid">
-                <!-- Cells generated by JS -->
-            </div>
-            <div id="message-overlay">
-                <h2 id="msg-title">BIG WIN</h2>
-                <p id="msg-val">1000</p>
+        <div id="grid-frame">
+            <div id="grid"></div>
+            <div id="modal-overlay">
+                <h1 id="modal-title">BIG WIN</h1>
+                <div id="modal-val">1000.00</div>
             </div>
         </div>
 
         <div id="ui-panel">
-            <div class="stat-box">
-                <span class="label">Balance</span>
-                <span class="value" id="balance-display">1000.00</span>
+            <div class="stat">
+                <span class="stat-label">Balance</span>
+                <span class="stat-val" id="bal-disp">1000.00</span>
             </div>
-            <div class="stat-box" style="align-items: flex-end;">
-                <span class="label">Total Win</span>
-                <span class="value win-value" id="win-display">0.00</span>
+            
+            <div class="stat" style="align-items: center;">
+                <div class="bet-box">
+                    <button class="bet-btn" onclick="adjustBet(-1)">-</button>
+                    <span id="bet-display">1</span>
+                    <button class="bet-btn" onclick="adjustBet(1)">+</button>
+                </div>
+                <div class="auto-wrapper" id="auto-btn" onclick="toggleAuto()">
+                    <span class="auto-label">AUTO</span>
+                    <div class="toggle-switch"></div>
+                </div>
             </div>
 
-            <div class="controls">
-                <div class="bet-control">
-                    <button class="bet-btn" onclick="changeBet(-1)">-</button>
-                    <span id="bet-amount">1</span>
-                    <button class="bet-btn" onclick="changeBet(1)">+</button>
-                </div>
-                <button id="spin-btn" onclick="spin()">Spin</button>
-                <button id="buy-bonus-btn" onclick="buyBonus()">
-                    Buy Bonus
-                    <span>100x Bet</span>
+            <div class="stat" style="align-items: flex-end;">
+                <span class="stat-label">Win</span>
+                <span class="stat-val win-txt" id="win-disp">0.00</span>
+            </div>
+
+            <div class="action-area">
+                <button class="btn-buy" id="buy-btn" onclick="buyBonus()">
+                    BUY BONUS
+                    <span>100x BET</span>
                 </button>
+                <button class="btn-spin" id="spin-btn" onclick="manualSpin()">SPIN</button>
             </div>
         </div>
     </div>
 
 <script>
-/** 
- * CONFIGURATION & STATE 
- */
-const CONFIG = {
-    rows: 5,
-    cols: 6,
-    minCluster: 5, // Minimum symbols to connect
-    animSpeed: 400,
-    paytable: {
-        '10': 0.1, 'J': 0.1, 'Q': 0.2, 'K': 0.3, 'A': 0.5,
-        'cheese': 1.0, 'beer': 1.5, 'baguette': 2.0, 'hat': 5.0
-    },
-    symbols: ['10', 'J', 'Q', 'K', 'A', 'cheese', 'beer', 'baguette', 'hat'],
-    weights: [15, 15, 12, 12, 10, 8, 6, 5, 3], // Probabilities corresponding to symbols
-    specialWeights: {
-        'fs': 0.02, // Chance to drop per cell fill
-        'rainbow': 0.015 
-    }
+/* --- 1. GAME CONFIGURATION --- */
+const CFG = {
+    rows: 5, cols: 6,
+    symbols: ['10','J','Q','K','A','cheese','beer','baguette','hat'],
+    weights: [14,14,12,12,10, 9, 7, 5, 3],
+    specials: { fs: 0.02, rainbow: 0.015 },
+    paytable: { '10':0.1, 'J':0.1, 'Q':0.2, 'K':0.3, 'A':0.5, 'cheese':1.0, 'beer':1.5, 'baguette':2.5, 'hat':5.0 }
 };
 
+/* --- 2. STATE MANAGEMENT --- */
 let state = {
-    grid: [], // 2D array of symbol strings
-    goldenGrid: [], // 2D boolean array
-    balance: 1000,
-    bet: 1,
+    grid: [], golden: [],
+    balance: 1000.00, bet: 1,
     currentWin: 0,
-    isSpinning: false,
-    bonusActive: false,
-    freeSpins: 0,
-    fsTriggersInRound: 0 // Track FS symbols landing
+    spinning: false,
+    autoSpin: false,
+    bonusMode: false,
+    freeSpins: 0
 };
 
-// DOM Elements
+/* --- 3. SVG ASSETS (Refined Colors/Shadows) --- */
+const SVG = {
+    '10': '<svg viewBox="0 0 100 100"><text x="50" y="70" font-size="60" fill="#8d99ae" stroke="#2b2d42" stroke-width="2" text-anchor="middle" font-weight="bold" font-family="serif">10</text></svg>',
+    'J': '<svg viewBox="0 0 100 100"><text x="50" y="70" font-size="60" fill="#457b9d" stroke="#1d3557" stroke-width="2" text-anchor="middle" font-weight="bold" font-family="serif">J</text></svg>',
+    'Q': '<svg viewBox="0 0 100 100"><text x="50" y="70" font-size="60" fill="#2a9d8f" stroke="#264653" stroke-width="2" text-anchor="middle" font-weight="bold" font-family="serif">Q</text></svg>',
+    'K': '<svg viewBox="0 0 100 100"><text x="50" y="70" font-size="60" fill="#e76f51" stroke="#9d0208" stroke-width="2" text-anchor="middle" font-weight="bold" font-family="serif">K</text></svg>',
+    'A': '<svg viewBox="0 0 100 100"><text x="50" y="70" font-size="60" fill="#f4a261" stroke="#e85d04" stroke-width="2" text-anchor="middle" font-weight="bold" font-family="serif">A</text></svg>',
+    
+    'cheese': '<svg viewBox="0 0 100 100"><path d="M15,80 L85,80 L85,50 L50,20 L15,50 Z" fill="#ffb703" stroke="#fb8500" stroke-width="3"/><circle cx="35" cy="60" r="5" fill="#fb8500"/><circle cx="60" cy="50" r="6" fill="#fb8500"/></svg>',
+    'beer': '<svg viewBox="0 0 100 100"><path d="M30,30 V80 Q30,90 40,90 H60 Q70,90 70,80 V30 Z" fill="#e9c46a" stroke="#000" stroke-width="2"/><path d="M25,30 Q30,10 50,20 Q70,10 75,30 Z" fill="#fff" stroke="#000" stroke-width="2"/><rect x="70" y="40" width="8" height="30" rx="4" fill="none" stroke="#000" stroke-width="3"/></svg>',
+    'baguette': '<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="40" ry="15" transform="rotate(-35 50 50)" fill="#dda15e" stroke="#603808" stroke-width="2"/><path d="M40,40 L50,30 M55,55 L65,45" stroke="#603808" stroke-width="3"/></svg>',
+    'hat': '<svg viewBox="0 0 100 100"><rect x="30" y="40" width="40" height="35" fill="#212529" stroke="#ced4da" stroke-width="1"/><rect x="15" y="75" width="70" height="10" rx="2" fill="#212529" stroke="#ced4da" stroke-width="1"/><rect x="30" y="65" width="40" height="5" fill="#d00000"/></svg>',
+    
+    'fs': '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="38" fill="#2a9d8f" stroke="#fff" stroke-width="3"/><text x="50" y="65" font-size="30" fill="#fff" text-anchor="middle" font-weight="bold" font-family="sans-serif">FS</text></svg>',
+    'rainbow': '<svg viewBox="0 0 100 100"><path d="M10,80 A40,40 0 0,1 90,80" fill="none" stroke="#e63946" stroke-width="6"/><path d="M15,80 A35,35 0 0,1 85,80" fill="none" stroke="#e9c46a" stroke-width="6"/><path d="M20,80 A30,30 0 0,1 80,80" fill="none" stroke="#2a9d8f" stroke-width="6"/><text x="50" y="95" font-size="12" fill="#fff" text-anchor="middle">RAINBOW</text></svg>',
+
+    'coin_bronze': '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="35" fill="#cd7f32" stroke="#5c3a1e" stroke-width="2"/><text x="50" y="55" font-size="20" fill="#3d2612" text-anchor="middle" font-weight="bold">$</text></svg>',
+    'coin_silver': '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="35" fill="#e5e5e5" stroke="#6c757d" stroke-width="2"/><text x="50" y="55" font-size="20" fill="#495057" text-anchor="middle" font-weight="bold">$</text></svg>',
+    'coin_gold': '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="35" fill="#ffb703" stroke="#fb8500" stroke-width="2"/><text x="50" y="55" font-size="20" fill="#7f4f24" text-anchor="middle" font-weight="bold">$</text></svg>',
+    'clover': '<svg viewBox="0 0 100 100"><path d="M50,50 Q30,20 50,10 Q70,20 50,50 Q80,30 90,50 Q80,70 50,50 Q70,80 50,90 Q30,80 50,50 Q20,70 10,50 Q20,30 50,50" fill="#2d6a4f" stroke="#95d5b2" stroke-width="2"/></svg>',
+    'pot': '<svg viewBox="0 0 100 100"><path d="M25,40 Q25,85 50,90 Q75,85 75,40 Z" fill="#000"/><ellipse cx="50" cy="40" rx="25" ry="8" fill="#ffd700"/></svg>'
+};
+
+/* --- 4. INITIALIZATION --- */
 const gridEl = document.getElementById('grid');
-const balEl = document.getElementById('balance-display');
-const winEl = document.getElementById('win-display');
-const betEl = document.getElementById('bet-amount');
-const spinBtn = document.getElementById('spin-btn');
-const buyBtn = document.getElementById('buy-bonus-btn');
-const bonusBanner = document.getElementById('bonus-banner');
-const fsCountEl = document.getElementById('fs-count');
-const msgOverlay = document.getElementById('message-overlay');
-const msgTitle = document.getElementById('msg-title');
-const msgVal = document.getElementById('msg-val');
 
-/**
- * SVG GENERATOR
- * Creates inline SVG strings for all symbols.
- */
-const SVGS = {
-    '10': `<svg viewBox="0 0 100 100"><text x="50" y="70" font-size="60" fill="#a8dadc" text-anchor="middle" font-weight="bold" stroke="black" stroke-width="2">10</text></svg>`,
-    'J': `<svg viewBox="0 0 100 100"><text x="50" y="70" font-size="60" fill="#457b9d" text-anchor="middle" font-weight="bold" stroke="black" stroke-width="2">J</text></svg>`,
-    'Q': `<svg viewBox="0 0 100 100"><text x="50" y="70" font-size="60" fill="#1d3557" text-anchor="middle" font-weight="bold" stroke="black" stroke-width="2">Q</text></svg>`,
-    'K': `<svg viewBox="0 0 100 100"><text x="50" y="70" font-size="60" fill="#e63946" text-anchor="middle" font-weight="bold" stroke="black" stroke-width="2">K</text></svg>`,
-    'A': `<svg viewBox="0 0 100 100"><text x="50" y="70" font-size="60" fill="#f1faee" text-anchor="middle" font-weight="bold" stroke="black" stroke-width="2">A</text></svg>`,
-    
-    'cheese': `<svg viewBox="0 0 100 100"><path d="M10,80 L90,80 L90,50 L50,20 L10,50 Z" fill="#f9c74f" stroke="black" stroke-width="3"/><circle cx="30" cy="60" r="5" fill="#f9844a"/><circle cx="60" cy="50" r="8" fill="#f9844a"/><circle cx="70" cy="70" r="4" fill="#f9844a"/></svg>`,
-    
-    'beer': `<svg viewBox="0 0 100 100"><path d="M25,30 L25,80 Q25,90 35,90 L65,90 Q75,90 75,80 L75,30 Z" fill="#f4a261" stroke="black" stroke-width="3"/><rect x="75" y="40" width="10" height="30" rx="5" fill="none" stroke="black" stroke-width="3"/><path d="M20,30 Q25,10 40,25 Q50,10 60,25 Q75,10 80,30 Z" fill="white" stroke="black" stroke-width="2"/></svg>`,
-    
-    'baguette': `<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="40" ry="15" transform="rotate(-30 50 50)" fill="#e09f3e" stroke="black" stroke-width="3"/><path d="M35,45 L45,35 M50,55 L60,45" stroke="#6f4518" stroke-width="3"/></svg>`,
-    
-    'hat': `<svg viewBox="0 0 100 100"><rect x="25" y="40" width="50" height="40" fill="#222" stroke="white" stroke-width="2"/><rect x="10" y="80" width="80" height="10" rx="2" fill="#222" stroke="white" stroke-width="2"/><rect x="25" y="70" width="50" height="5" fill="#e63946"/></svg>`,
-    
-    'fs': `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#2a9d8f" stroke="white" stroke-width="3"/><text x="50" y="65" font-size="35" fill="white" text-anchor="middle" font-weight="bold">FS</text></svg>`,
-    
-    'rainbow': `<svg viewBox="0 0 100 100"><path d="M10,80 A40,40 0 0,1 90,80" fill="none" stroke="#e63946" stroke-width="5"/><path d="M15,80 A35,35 0 0,1 85,80" fill="none" stroke="#f4a261" stroke-width="5"/><path d="M20,80 A30,30 0 0,1 80,80" fill="none" stroke="#e9c46a" stroke-width="5"/><path d="M25,80 A25,25 0 0,1 75,80" fill="none" stroke="#2a9d8f" stroke-width="5"/><text x="50" y="95" font-size="14" text-anchor="middle" fill="white">RAINBOW</text></svg>`,
-
-    // Coin & Special Reveal SVGs
-    'coin_bronze': `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#cd7f32" stroke="#5c3a1e" stroke-width="3"/><circle cx="50" cy="50" r="30" fill="none" stroke="#5c3a1e" stroke-width="2" stroke-dasharray="5,5"/></svg>`,
-    'coin_silver': `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#c0c0c0" stroke="#666" stroke-width="3"/><circle cx="50" cy="50" r="30" fill="none" stroke="#666" stroke-width="2" stroke-dasharray="5,5"/></svg>`,
-    'coin_gold': `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#ffd700" stroke="#b8860b" stroke-width="3"/><circle cx="50" cy="50" r="30" fill="none" stroke="#b8860b" stroke-width="2" stroke-dasharray="5,5"/></svg>`,
-    'clover': `<svg viewBox="0 0 100 100"><path d="M50,50 Q30,20 50,10 Q70,20 50,50 Q80,30 90,50 Q80,70 50,50 Q70,80 50,90 Q30,80 50,50 Q20,70 10,50 Q20,30 50,50" fill="#2d6a4f" stroke="#d8f3dc" stroke-width="2"/></svg>`,
-    'pot': `<svg viewBox="0 0 100 100"><path d="M20,40 Q20,85 50,90 Q80,85 80,40 L20,40" fill="#000"/><ellipse cx="50" cy="40" rx="30" ry="10" fill="#ffd700"/><text x="50" y="70" font-size="12" fill="white" text-anchor="middle">COLLECT</text></svg>`
-};
-
-/**
- * INITIALIZATION
- */
 function init() {
-    // Create Grid DOM
-    for(let r=0; r<CONFIG.rows; r++) {
+    // Generate Grid DOM
+    gridEl.innerHTML = '';
+    for(let r=0; r<CFG.rows; r++) {
         state.grid[r] = [];
-        state.goldenGrid[r] = [];
-        for(let c=0; c<CONFIG.cols; c++) {
+        state.golden[r] = [];
+        for(let c=0; c<CFG.cols; c++) {
             let cell = document.createElement('div');
             cell.className = 'cell';
-            cell.id = `cell-${r}-${c}`;
+            cell.id = `c-${r}-${c}`;
             gridEl.appendChild(cell);
+            // Initial Random Data
             state.grid[r][c] = getRandomSymbol();
-            state.goldenGrid[r][c] = false;
-            renderSymbol(r, c, state.grid[r][c], false);
+            state.golden[r][c] = false;
+            renderCell(r, c);
         }
     }
     updateUI();
 }
 
-/**
- * GAME LOOP & MECHANICS
- */
+/* --- 5. CORE MECHANICS --- */
 
+// Get a weighted random symbol
 function getRandomSymbol() {
-    let rand = Math.random();
-    
-    // Check Specials
-    if (rand < CONFIG.specialWeights.fs) return 'fs';
-    if (rand < CONFIG.specialWeights.fs + CONFIG.specialWeights.rainbow) return 'rainbow';
+    let r = Math.random();
+    if (r < CFG.specials.fs) return 'fs';
+    if (r < CFG.specials.fs + CFG.specials.rainbow) return 'rainbow';
 
-    // Weighted Standard Symbols
-    let totalWeight = CONFIG.weights.reduce((a,b)=>a+b,0);
-    let randomW = Math.random() * totalWeight;
-    let weightSum = 0;
-    
-    for(let i=0; i<CONFIG.symbols.length; i++) {
-        weightSum += CONFIG.weights[i];
-        if(randomW <= weightSum) return CONFIG.symbols[i];
+    let total = CFG.weights.reduce((a,b)=>a+b,0);
+    let rand = Math.random() * total;
+    let sum = 0;
+    for(let i=0; i<CFG.symbols.length; i++){
+        sum += CFG.weights[i];
+        if(rand <= sum) return CFG.symbols[i];
     }
-    return CONFIG.symbols[0];
+    return '10';
 }
 
-function renderSymbol(r, c, type, isFalling = false) {
-    const cell = document.getElementById(`cell-${r}-${c}`);
+// Render a single cell (symbol + golden state + animations)
+function renderCell(r, c, animClass = null, specialVal = null) {
+    let cell = document.getElementById(`c-${r}-${c}`);
+    let type = state.grid[r][c];
     
-    // Handle Golden Square Visual
-    if(state.goldenGrid[r][c]) cell.classList.add('golden');
+    // Golden State
+    if(state.golden[r][c]) cell.classList.add('golden');
     else cell.classList.remove('golden');
 
-    // Clear previous content
-    cell.innerHTML = '';
+    cell.innerHTML = ''; // clear
     
-    if(type === null) return; // Empty cell
-
-    let div = document.createElement('div');
-    div.className = 'symbol';
-    if(isFalling) div.classList.add('falling');
-    div.innerHTML = SVGS[type] || '';
-    cell.appendChild(div);
+    if(type) {
+        let div = document.createElement('div');
+        div.className = 'symbol';
+        div.innerHTML = SVG[type] || '';
+        if(animClass) div.classList.add(animClass);
+        
+        // If it has a special value (coins/clover/pot)
+        if(specialVal !== null) {
+            let valTag = document.createElement('div');
+            valTag.className = 'val-overlay';
+            valTag.innerText = type === 'clover' ? `x${specialVal}` : `${specialVal}x`;
+            if(type === 'pot') valTag.innerText = specialVal.toFixed(2);
+            div.appendChild(valTag);
+        }
+        
+        cell.appendChild(div);
+    }
 }
 
-async function spin() {
-    if(state.isSpinning) return;
-    
-    if(!state.bonusActive && state.balance < state.bet) {
+/* --- 6. GAME LOOP (ASYNC) --- */
+
+async function manualSpin() {
+    if(state.spinning) return;
+    // If auto is active but user clicks spin, stop auto (unless bonus)
+    if(state.autoSpin && !state.bonusMode) {
+        toggleAuto();
+        return;
+    }
+    await runGameRound();
+}
+
+async function runGameRound() {
+    if(state.balance < state.bet && !state.bonusMode) {
         alert("Insufficient Balance!");
+        state.autoSpin = false;
+        updateUI();
         return;
     }
 
-    state.isSpinning = true;
+    state.spinning = true;
     state.currentWin = 0;
-    state.fsTriggersInRound = 0;
     
-    // Deduct bet if not in bonus
-    if(!state.bonusActive) {
+    // Bet Deduction / Spin Count
+    if(!state.bonusMode) {
         state.balance -= state.bet;
-        // Reset golden grid in base game
-        resetGoldenGrid(); 
+        resetGolden(); // Base game resets golden squares
     } else {
         state.freeSpins--;
     }
-
+    
     updateUI();
     updateControls();
 
-    // Clear Grid Animation
-    clearGridDOM();
-    await wait(100);
+    // 1. Drop Animation (Staggered)
+    await performDropSequence();
 
-    // Fill Grid Initially
-    for(let c=0; c<CONFIG.cols; c++) {
-        for(let r=0; r<CONFIG.rows; r++) {
-            state.grid[r][c] = getRandomSymbol();
-        }
-    }
-    renderFullGrid(true);
-    await wait(500);
-
-    // Evaluation Loop (Cascades)
-    let keepCascading = true;
-    while(keepCascading) {
-        let winData = evaluateGrid(); // Check clusters
+    // 2. Cascade Loop
+    let cascading = true;
+    while(cascading) {
+        let winInfo = evaluateWins();
         
-        if(winData.hasWin) {
-            state.currentWin += winData.winAmount;
+        if(winInfo.hasWin) {
+            state.currentWin += winInfo.totalVal;
+            highlightWins(winInfo.cells); // Visual pop
             
             // Mark Golden Squares
-            winData.winningCells.forEach(pos => {
-                state.goldenGrid[pos.r][pos.c] = true;
-                // Highlight winning symbols
-                let cell = document.getElementById(`cell-${pos.r}-${pos.c}`);
-                if(cell.firstChild) cell.firstChild.classList.add('win-anim');
-            });
-            
+            winInfo.cells.forEach(pos => state.golden[pos.r][pos.c] = true);
             updateUI();
             await wait(600);
 
-            // Remove Winning Symbols + Super Cascade (All of same type)
-            let typesToRemove = [...winData.winningTypes];
+            // Remove Logic & Super Cascade
+            removeSymbols(winInfo.cells, winInfo.types);
+            await wait(300); // Wait for disappearance
             
-            // Collect all cells to remove (Cluster + Same Type elsewhere)
-            let removalSet = new Set();
-            
-            // First, add the winning cluster cells
-            winData.winningCells.forEach(p => removalSet.add(`${p.r},${p.c}`));
-
-            // Super Cascade: Find all other instances of winning types
-            for(let r=0; r<CONFIG.rows; r++) {
-                for(let c=0; c<CONFIG.cols; c++) {
-                    if(typesToRemove.includes(state.grid[r][c])) {
-                        removalSet.add(`${r},${c}`);
-                        // Super cascade also creates golden squares
-                        state.goldenGrid[r][c] = true; 
-                    }
-                }
-            }
-
-            // Visual Remove
-            removalSet.forEach(key => {
-                let [r,c] = key.split(',').map(Number);
-                let cell = document.getElementById(`cell-${r}-${c}`);
-                if(cell.firstChild) cell.firstChild.classList.add('removed');
-                state.grid[r][c] = null; // Logic remove
-            });
-
-            await wait(300);
-            renderFullGrid(false); // Update golden squares visual
-            
-            // Gravity & Refill
-            await applyGravity();
-            
+            // Gravity & New Symbols
+            await fillGrid();
         } else {
-            keepCascading = false;
+            cascading = false;
         }
     }
 
-    // Check Rainbow Feature after cascades end
+    // 3. Rainbow Feature
     if(hasRainbow()) {
-        await activateRainbowFeature();
+        await triggerRainbow();
     }
 
-    // Check Bonus Trigger (Accumulated FS symbols)
-    // Note: FS symbols aren't removed by clusters usually, but if they stick we count them.
-    // Simple logic: scan grid for FS symbols at end of round
-    let fsCount = countSymbols('fs');
-    if(fsCount >= 3) {
-        await triggerBonus();
-    }
-
-    // Bonus Mode Logic
-    if(state.bonusActive) {
-        if(state.freeSpins <= 0) {
-            endBonus();
+    // 4. Check Bonus Trigger (Base game only)
+    if(!state.bonusMode) {
+        let fsCount = countSymbol('fs');
+        if(fsCount >= 3) {
+            await startBonusMode();
+        }
+    } else {
+        // Check retrigger in bonus? (Simplified: just play spins)
+        if(state.freeSpins === 0) {
+            await endBonusMode();
         }
     }
 
-    state.isSpinning = false;
+    state.spinning = false;
     updateControls();
+
+    // 5. Handle Auto Spin Logic
+    if(state.bonusMode && state.freeSpins > 0) {
+        await wait(1000); // Pause between bonus spins
+        runGameRound();
+    } else if (state.autoSpin && !state.bonusMode) {
+        await wait(800);
+        runGameRound();
+    }
 }
 
-function evaluateGrid() {
-    let visited = Array(CONFIG.rows).fill(0).map(() => Array(CONFIG.cols).fill(false));
-    let totalRoundWin = 0;
-    let winningTypes = new Set();
-    let winningCells = []; // {r, c}
+/* --- 7. ANIMATION SEQUENCES --- */
 
-    // Helper for DFS
-    function getCluster(r, c, type) {
-        let stack = [[r,c]];
-        let cluster = [];
-        while(stack.length > 0) {
-            let [cr, cc] = stack.pop();
-            if(cr < 0 || cr >= CONFIG.rows || cc < 0 || cc >= CONFIG.cols) continue;
-            if(visited[cr][cc]) continue;
-            if(state.grid[cr][cc] !== type) continue;
-
-            visited[cr][cc] = true;
-            cluster.push({r: cr, c: cc});
-
-            stack.push([cr+1, cc]);
-            stack.push([cr-1, cc]);
-            stack.push([cr, cc+1]);
-            stack.push([cr, cc-1]);
+async function performDropSequence() {
+    // Logic: clear grid, then fill column by column with staggered delay
+    // This makes it feel "smooth"
+    for(let r=0; r<CFG.rows; r++) {
+        for(let c=0; c<CFG.cols; c++) {
+            state.grid[r][c] = getRandomSymbol();
+            // Use specific animation class with delay handled by JS loop or CSS
+            // Here we just re-render. The staggered look comes from JS loop delay?
+            // Better: Render all but add CSS delay style.
         }
-        return cluster;
     }
 
+    // To make it look like dropping, we render them all but add animation delay
+    for(let c=0; c<CFG.cols; c++) {
+        for(let r=0; r<CFG.rows; r++) {
+            renderCell(r, c, 'drop-anim');
+            // Apply inline delay
+            let cell = document.getElementById(`c-${r}-${c}`).querySelector('.symbol');
+            if(cell) cell.style.animationDelay = `${c * 50 + r * 50}ms`;
+        }
+    }
+    
+    await wait(600); // Wait for drops to settle
+}
+
+async function fillGrid() {
+    // Logic: Shift nulls up (gravity) then fill top
+    // Visual: Make falling symbols slide? Hard in DOM.
+    // We will use the "Refill" opacity fade for smoothness.
+    
+    for(let c=0; c<CFG.cols; c++) {
+        let write = CFG.rows - 1;
+        for(let r=CFG.rows - 1; r>=0; r--) {
+            if(state.grid[r][c] !== null) {
+                state.grid[write][c] = state.grid[r][c];
+                if(write !== r) state.grid[r][c] = null;
+                write--;
+            }
+        }
+        while(write >= 0) {
+            state.grid[write][c] = getRandomSymbol();
+            write--;
+        }
+    }
+    
+    // Re-render the whole grid quickly
+    for(let r=0; r<CFG.rows; r++){
+        for(let c=0; c<CFG.cols; c++){
+            renderCell(r, c, 'drop-anim'); // Reuse drop anim for refill
+             let cell = document.getElementById(`c-${r}-${c}`).querySelector('.symbol');
+             if(cell) cell.style.animationDelay = `${c * 30}ms`;
+        }
+    }
+    await wait(500);
+}
+
+/* --- 8. LOGIC HELPERS --- */
+
+function evaluateWins() {
+    let visited = Array(CFG.rows).fill(0).map(()=>Array(CFG.cols).fill(false));
+    let totalVal = 0;
+    let winningCells = [];
+    let winningTypes = new Set();
     let hasWin = false;
 
-    for(let r=0; r<CONFIG.rows; r++) {
-        for(let c=0; c<CONFIG.cols; c++) {
+    const getCluster = (r, c, type) => {
+        let stack = [[r,c]], cluster = [];
+        while(stack.length) {
+            let [cr, cc] = stack.pop();
+            if(cr<0||cr>=CFG.rows||cc<0||cc>=CFG.cols||visited[cr][cc]) continue;
+            if(state.grid[cr][cc] !== type) continue;
+            visited[cr][cc] = true;
+            cluster.push({r:cr, c:cc});
+            stack.push([cr+1,cc],[cr-1,cc],[cr,cc+1],[cr,cc-1]);
+        }
+        return cluster;
+    };
+
+    for(let r=0; r<CFG.rows; r++){
+        for(let c=0; c<CFG.cols; c++){
             if(!visited[r][c]) {
-                let type = state.grid[r][c];
-                // Ignore specials for cluster pays
-                if(type && type !== 'fs' && type !== 'rainbow' && !type.startsWith('coin')) {
-                    let cluster = getCluster(r, c, type);
-                    if(cluster.length >= CONFIG.minCluster) {
+                let t = state.grid[r][c];
+                if(t && !['fs','rainbow'].includes(t) && !t.startsWith('coin') && t!=='clover' && t!=='pot') {
+                    let cl = getCluster(r,c,t);
+                    if(cl.length >= 5) {
                         hasWin = true;
-                        winningTypes.add(type);
-                        winningCells.push(...cluster);
-                        // Calc win: Base * (ClusterSize - 4) * Bet
-                        let symVal = CONFIG.paytable[type] || 0;
-                        let win = symVal * (cluster.length - 4) * 0.5 * state.bet; // Simplified math
-                        if(cluster.length > 10) win *= 1.5;
-                        totalRoundWin += win;
+                        winningCells.push(...cl);
+                        winningTypes.add(t);
+                        let val = CFG.paytable[t] || 0;
+                        totalVal += val * (cl.length - 4) * 0.5 * state.bet;
                     }
                 }
             }
         }
     }
-
-    return { hasWin, winAmount: totalRoundWin, winningTypes, winningCells };
+    return { hasWin, totalVal, cells: winningCells, types: Array.from(winningTypes) };
 }
 
-async function applyGravity() {
-    // Move symbols down
-    for(let c=0; c<CONFIG.cols; c++) {
-        let writeRow = CONFIG.rows - 1;
-        for(let r=CONFIG.rows - 1; r >= 0; r--) {
-            if(state.grid[r][c] !== null) {
-                state.grid[writeRow][c] = state.grid[r][c];
-                if(writeRow !== r) state.grid[r][c] = null;
-                writeRow--;
+function removeSymbols(cells, types) {
+    // Cluster Remove
+    cells.forEach(p => state.grid[p.r][p.c] = null);
+    // Super Cascade (remove all of same types everywhere)
+    for(let r=0; r<CFG.rows; r++){
+        for(let c=0; c<CFG.cols; c++){
+            if(types.includes(state.grid[r][c])) {
+                state.grid[r][c] = null;
+                state.golden[r][c] = true; // Super cascade makes gold
             }
         }
-        // Fill top with new symbols
-        for(let r=writeRow; r >= 0; r--) {
-            state.grid[r][c] = getRandomSymbol();
-        }
     }
-    renderFullGrid(true); // Render with falling animation
-    await wait(400);
+}
+
+function resetGolden() {
+    for(let r=0; r<CFG.rows; r++) state.golden[r].fill(false);
 }
 
 function hasRainbow() {
-    for(let r=0; r<CONFIG.rows; r++) {
-        for(let c=0; c<CONFIG.cols; c++) {
-            if(state.grid[r][c] === 'rainbow') return true;
-        }
-    }
-    return false;
+    return state.grid.some(row => row.includes('rainbow'));
 }
 
-function countSymbols(type) {
-    let count = 0;
-    for(let r=0; r<CONFIG.rows; r++) {
-        for(let c=0; c<CONFIG.cols; c++) {
-            if(state.grid[r][c] === type) count++;
-        }
-    }
-    return count;
+function countSymbol(t) {
+    return state.grid.flat().filter(s => s === t).length;
 }
 
-/**
- * RAINBOW & GOLDEN SQUARE FEATURE
- */
-async function activateRainbowFeature() {
-    showMsg("RAINBOW ACTIVE", "");
-    await wait(1000);
-    hideMsg();
+function highlightWins(cells) {
+    cells.forEach(p => {
+        let el = document.getElementById(`c-${p.r}-${p.c}`).querySelector('.symbol');
+        if(el) el.classList.add('win-pop');
+    });
+}
 
-    // 1. Reveal Phase: Turn all Golden Squares into Coins/Specials
-    let activeCells = [];
-    for(let r=0; r<CONFIG.rows; r++) {
-        for(let c=0; c<CONFIG.cols; c++) {
-            if(state.goldenGrid[r][c]) {
-                let reveal = getRainbowReveal();
-                // Place object with value for calculation
-                state.grid[r][c] = reveal; 
-                activeCells.push({r,c, type: reveal.type, val: reveal.val});
-                
-                // Render Special Symbol
-                renderSymbol(r, c, reveal.svgKey);
-                // Add text overlay
-                let cell = document.getElementById(`cell-${r}-${c}`);
-                if(reveal.type === 'coin' || reveal.type === 'clover') {
-                    let span = document.createElement('span');
-                    span.className = 'coin-val';
-                    span.innerText = reveal.type === 'clover' ? `x${reveal.val}` : `${reveal.val}x`;
-                    cell.appendChild(span);
-                }
-            }
+/* --- 9. RAINBOW & REVEAL LOGIC --- */
+
+async function triggerRainbow() {
+    // 1. Identify Rainbows & Golden Squares
+    let activeSquares = [];
+    for(let r=0; r<CFG.rows; r++){
+        for(let c=0; c<CFG.cols; c++){
+            if(state.golden[r][c]) activeSquares.push({r,c});
         }
     }
-    await wait(800);
 
-    // 2. Clover Logic (Multipliers) - Multiplies adjacent coins/pots
-    // Need to process grid logic
-    let totalRainbowWin = 0;
+    if(activeSquares.length === 0) return;
+
+    // 2. Reveal Phase (Turn grid items to coins)
+    let revealData = [];
+    activeSquares.forEach(pos => {
+        let item = getRevealItem();
+        state.grid[pos.r][pos.c] = item.type;
+        revealData.push({ ...pos, ...item });
+        renderCell(pos.r, pos.c, 'flip-in', item.val); // Render with flip anim and value
+    });
     
-    // Process Clovers first
-    activeCells.filter(x => x.type === 'clover').forEach(clover => {
-        getNeighbors(clover.r, clover.c).forEach(n => {
-            let target = activeCells.find(x => x.r === n.r && x.c === n.c);
-            if(target && (target.type === 'coin' || target.type === 'pot')) {
-                target.val *= clover.val;
-                updateCellText(target.r, target.c, target.val);
+    await wait(1000);
+
+    // 3. Process Clovers
+    let clovers = revealData.filter(x => x.type === 'clover');
+    clovers.forEach(cl => {
+        getNeighbors(cl.r, cl.c).forEach(n => {
+            let target = revealData.find(t => t.r === n.r && t.c === n.c);
+            if(target && (target.type.startsWith('coin') || target.type === 'pot')) {
+                target.val *= cl.val;
+                // Re-render to update number
+                renderCell(target.r, target.c, 'win-pop', target.val); 
             }
         });
     });
-    await wait(500);
+    if(clovers.length) await wait(800);
 
-    // Process Pots (Collectors) - Collects adjacent coins/pots
-    let pots = activeCells.filter(x => x.type === 'pot');
-    // Simple logic: Pot sums adjacent, sets neighbors to 0? 
-    // Standard mechanics: Pot collects value, keeps it. Neighbor stays? 
-    // Usually Pot collects and clears neighbor. Let's sum adjacent coins.
+    // 4. Process Pots
+    let pots = revealData.filter(x => x.type === 'pot');
     pots.forEach(pot => {
-        let collected = 0;
+        let sum = 0;
         getNeighbors(pot.r, pot.c).forEach(n => {
-            let target = activeCells.find(x => x.r === n.r && x.c === n.c);
-            if(target && target.type === 'coin') {
-                collected += target.val;
-                // Visual: nullify coin? Let's keep it for show, but Pot gets value.
+            let target = revealData.find(t => t.r === n.r && t.c === n.c);
+            if(target && target.type.startsWith('coin')) {
+                sum += target.val;
             }
         });
-        pot.val += collected;
-        // Update pot text (if we added one, which we didn't in render, add now)
-        updateCellText(pot.r, pot.c, pot.val);
+        pot.val += sum;
+        renderCell(pot.r, pot.c, 'win-pop', pot.val);
     });
-    await wait(500);
+    if(pots.length) await wait(800);
 
-    // 3. Calculate Total
-    activeCells.forEach(cell => {
-        if(cell.type === 'coin' || cell.type === 'pot') {
-            totalRainbowWin += cell.val * state.bet;
+    // 5. Sum Total
+    let featureWin = 0;
+    revealData.forEach(x => {
+        if(x.type.startsWith('coin') || x.type === 'pot') {
+            featureWin += x.val * state.bet;
         }
     });
 
-    if(totalRainbowWin > 0) {
-        state.currentWin += totalRainbowWin;
+    if(featureWin > 0) {
+        state.currentWin += featureWin;
+        showModal("RAINBOW WIN", featureWin.toFixed(2));
         updateUI();
-        showMsg("FEATURE WIN", totalRainbowWin.toFixed(2));
-        await wait(1500);
-        hideMsg();
+        await wait(2000);
+        hideModal();
     }
 }
 
-function getRainbowReveal() {
+function getRevealItem() {
     let r = Math.random();
-    if(r < 0.65) {
-        // Bronze Coin (0.2x - 4x)
-        return { type: 'coin', svgKey: 'coin_bronze', val: (Math.random()*3.8 + 0.2).toFixed(1) };
-    } else if (r < 0.85) {
-        // Silver Coin (5x - 20x)
-        return { type: 'coin', svgKey: 'coin_silver', val: Math.floor(Math.random()*15 + 5) };
-    } else if (r < 0.92) {
-        // Gold Coin (25x - 100x)
-        return { type: 'coin', svgKey: 'coin_gold', val: Math.floor(Math.random()*75 + 25) };
-    } else if (r < 0.97) {
-        // Clover (2x - 10x)
-        return { type: 'clover', svgKey: 'clover', val: Math.floor(Math.random()*8 + 2) };
-    } else {
-        // Pot
-        return { type: 'pot', svgKey: 'pot', val: 0 }; // Starts at 0, collects
-    }
+    if(r < 0.6) return { type: 'coin_bronze', val: (Math.random()*4+0.2).toFixed(1)*1 };
+    if(r < 0.85) return { type: 'coin_silver', val: Math.floor(Math.random()*15+5) };
+    if(r < 0.93) return { type: 'coin_gold', val: Math.floor(Math.random()*50+25) };
+    if(r < 0.98) return { type: 'clover', val: Math.floor(Math.random()*8+2) };
+    return { type: 'pot', val: 0 };
 }
 
 function getNeighbors(r, c) {
-    let n = [];
-    if(r>0) n.push({r:r-1, c:c});
-    if(r<CONFIG.rows-1) n.push({r:r+1, c:c});
-    if(c>0) n.push({r:r, c:c-1});
-    if(c<CONFIG.cols-1) n.push({r:r, c:c+1});
-    return n;
+    return [
+        {r:r-1,c:c}, {r:r+1,c:c}, {r:r,c:c-1}, {r:r,c:c+1}
+    ].filter(p => p.r>=0 && p.r<CFG.rows && p.c>=0 && p.c<CFG.cols);
 }
 
-function updateCellText(r, c, val) {
-    let cell = document.getElementById(`cell-${r}-${c}`);
-    let span = cell.querySelector('.coin-val');
-    if(!span) {
-        span = document.createElement('span');
-        span.className = 'coin-val';
-        cell.appendChild(span);
-    }
-    span.innerText = parseFloat(val).toFixed(1) + 'x';
-}
+/* --- 10. BONUS LOGIC --- */
 
-/**
- * BONUS & BUY FEATURE
- */
-async function triggerBonus() {
-    showMsg("BONUS TRIGGERED!", "8 FREE SPINS");
+async function startBonusMode() {
+    state.bonusMode = true;
+    state.freeSpins = 8; // Standard
+    showModal("BONUS!", "8 FREE SPINS");
     await wait(2000);
-    hideMsg();
+    hideModal();
     
-    state.bonusActive = true;
-    state.freeSpins += 8;
-    bonusBanner.style.display = 'block';
+    // Auto-start bonus spins handled in runGameRound recursion
+    document.getElementById('fs-indicator').style.display = 'block';
     updateUI();
 }
 
-function endBonus() {
-    state.bonusActive = false;
-    bonusBanner.style.display = 'none';
-    resetGoldenGrid();
-    renderFullGrid(false);
-    showMsg("BONUS COMPLETED", `Total: ${state.currentWin.toFixed(2)}`);
-    setTimeout(hideMsg, 2000);
+async function endBonusMode() {
+    state.bonusMode = false;
+    showModal("TOTAL WIN", state.currentWin.toFixed(2));
+    await wait(3000);
+    hideModal();
+    document.getElementById('fs-indicator').style.display = 'none';
+    state.currentWin = 0; // Reset for base game view
+    resetGolden();
+    // Render empty grid for visual clean slate? Or keep last state.
+    // Usually slots return to base game grid.
+    init(); 
+    state.autoSpin = false; // Stop auto after bonus
+    updateUI();
 }
 
 function buyBonus() {
     let cost = state.bet * 100;
     if(state.balance >= cost) {
         state.balance -= cost;
-        state.bonusActive = true;
+        state.bonusMode = true;
         state.freeSpins = 8;
         
-        // Force UI update
         updateUI();
-        bonusBanner.style.display = 'block';
+        document.getElementById('fs-indicator').style.display = 'block';
         
-        // Trigger Start
-        showMsg("BONUS BOUGHT", "Good Luck!");
-        setTimeout(() => {
-            hideMsg();
-            spin();
-        }, 1500);
+        // Trigger the auto-spin loop for bonus
+        runGameRound(); 
     } else {
-        alert("Not enough balance!");
+        alert("Need more cash, partner!");
     }
 }
 
-/**
- * HELPERS & UI
- */
-function renderFullGrid(animate = false) {
-    for(let r=0; r<CONFIG.rows; r++) {
-        for(let c=0; c<CONFIG.cols; c++) {
-            renderSymbol(r, c, state.grid[r][c], animate);
-        }
-    }
-}
+/* --- 11. UI UTILS --- */
 
-function clearGridDOM() {
-    let cells = document.querySelectorAll('.symbol');
-    cells.forEach(el => el.remove());
-}
-
-function resetGoldenGrid() {
-    for(let r=0; r<CONFIG.rows; r++) {
-        for(let c=0; c<CONFIG.cols; c++) state.goldenGrid[r][c] = false;
-    }
-}
-
-function changeBet(delta) {
-    if(state.isSpinning) return;
-    let newBet = state.bet + delta;
-    if(newBet >= 1 && newBet <= 100) state.bet = newBet;
+function adjustBet(delta) {
+    if(state.spinning) return;
+    let n = state.bet + delta;
+    if(n >= 1 && n <= 100) state.bet = n;
     updateUI();
 }
 
+function toggleAuto() {
+    state.autoSpin = !state.autoSpin;
+    document.getElementById('auto-btn').classList.toggle('auto-active');
+    if(state.autoSpin && !state.spinning) {
+        runGameRound();
+    }
+}
+
 function updateUI() {
-    balEl.innerText = state.balance.toFixed(2);
-    winEl.innerText = state.currentWin.toFixed(2);
-    betEl.innerText = state.bet;
-    fsCountEl.innerText = state.freeSpins;
+    document.getElementById('bal-disp').innerText = state.balance.toFixed(2);
+    document.getElementById('win-disp').innerText = state.currentWin.toFixed(2);
+    document.getElementById('bet-display').innerText = state.bet;
+    document.getElementById('fs-cnt').innerText = state.freeSpins;
 }
 
 function updateControls() {
-    spinBtn.disabled = state.isSpinning;
-    buyBtn.disabled = state.isSpinning || state.bonusActive;
-    document.querySelectorAll('.bet-btn').forEach(b => b.disabled = state.isSpinning);
+    let disabled = state.spinning || state.bonusMode;
+    document.getElementById('spin-btn').disabled = disabled;
+    document.getElementById('buy-btn').disabled = disabled;
+    document.querySelectorAll('.bet-btn').forEach(b => b.disabled = disabled);
 }
 
-function showMsg(title, val) {
-    msgTitle.innerText = title;
-    msgVal.innerText = val;
-    msgOverlay.style.display = 'block';
+function showModal(title, val) {
+    document.getElementById('modal-title').innerText = title;
+    document.getElementById('modal-val').innerText = val;
+    document.getElementById('modal-overlay').style.display = 'flex';
 }
+function hideModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+const wait = ms => new Promise(r => setTimeout(r, ms));
 
-function hideMsg() {
-    msgOverlay.style.display = 'none';
-}
-
-const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Start
+/* START */
 init();
 
 </script>
