@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0f212e">
+    <title>Pro Casino</title>
+    <style>
+        :root {
+            --bg-body: #0f212e;
+            --bg-card: #1a2c38;
+            --bg-input: #071018;
+            --accent: #00e701;
+            --accent-hover: #1fff20;
+            --danger: #ff4949;
+            --text-main: #ffffff;
+            --text-sub: #b1bad3;
+            --shadow: 0 4px 12px rgba(0,0,0,0.4);
+            --radius: 12px;
+            --safe-area-bottom: env(safe-area-inset-bottom, 20px);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation; /* Prevents double-tap zoom */
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            height: 100vh;
+            height: 100dvh; /* Dynamic viewport height for mobile */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- HEADER --- */
+        header {
+            height: 60px;
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .brand {
+            font-weight: 900;
+            font-style: italic;
+            font-size: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        .wallet {
+            background: var(--bg-input);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid #2f4553;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* --- NAVIGATION --- */
+        .nav-tabs {
+            display: flex;
+            background: var(--bg-card);
+            padding: 0 10px;
+            gap: 10px;
+            overflow-x: auto;
+            border-bottom: 1px solid #2f4553;
+            flex-shrink: 0;
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 14px 0;
+            color: var(--text-sub);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            position: relative;
+            transition: 0.2s;
+        }
+
+        .tab.active {
+            color: white;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--accent);
+            border-radius: 3px 3px 0 0;
+            box-shadow: 0 -2px 8px rgba(0, 231, 1, 0.4);
+        }
+
+        /* --- MAIN CONTENT AREA --- */
+        .main-layout {
+            flex: 1;
+            display: flex;
+            flex-direction: column; /* Mobile: Vertical stack */
+            overflow-y: auto;
+            padding-bottom: var(--safe-area-bottom);
+        }
+
+        /* Large screens: Side-by-side */
+        @media (min-width: 769px) {
+            .main-layout {
+                flex-direction: row-reverse;
+                max-width: 1200px;
+                margin: 0 auto;
+                width: 100%;
+                overflow: hidden;
+            }
+            .game-container {
+                flex: 1;
+                height: 100%;
+            }
+            .controls-container {
+                width: 320px;
+                border-right: 1px solid #2f4553;
+                overflow-y: auto;
+            }
+        }
+
+        /* --- GAME STAGE --- */
+        .game-container {
+            flex: 1; /* Takes remaining height on mobile */
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at center, #1a2c38 0%, #0f212e 100%);
+            overflow: hidden;
+            min-height: 300px; /* Ensure visibility on mobile */
+        }
+
+        /* --- CONTROLS --- */
+        .controls-container {
+            background: var(--bg-card);
+            padding: 20px;
+            border-top: 1px solid #2f4553;
+            z-index: 5;
+            flex-shrink: 0; /* Don't shrink below content */
+        }
+
+        .control-group {
+            margin-bottom: 16px;
+        }
+
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        
+        label {
+            font-size: 12px;
+            color: var(--text-sub);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Custom Input Field */
+        .input-box {
+            display: flex;
+            background: var(--bg-input);
+            border: 1px solid #2f4553;
+            border-radius: 6px;
+            padding: 4px;
+            transition: border 0.2s;
+        }
+
+        .input-box:focus-within {
+            border-color: var(--accent);
+        }
+
+        .input-box input {
+            background: transparent;
+            border: none;
+            color: white;
+            font-weight: 600;
+            width: 100%;
+            padding: 10px;
+            font-size: 16px; /* Prevents iOS zoom */
+            outline: none;
+        }
+
+        .input-box select {
+            background: transparent;
+            border: none;
+            color: white;
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .btn-mod {
+            background: #213743;
+            border: none;
+            color: var(--text-sub);
+            font-weight: 700;
+            width: 45px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+        .btn-mod:active { background: #2f4553; color: white; }
+
+        /* Big Action Button */
+        .btn-action {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: var(--radius);
+            background: var(--accent);
+            color: #071018;
+            font-weight: 800;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #00b300; /* 3D click feel */
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .btn-action:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #00b300;
+        }
+
+        .btn-cashout {
+            background: #213743;
+            color: white;
+            border: 2px solid var(--accent);
+            box-shadow: 0 4px 0 #15252e;
+        }
+        .btn-cashout:active { box-shadow: 0 2px 0 #15252e; }
+
+        /* --- PLINKO SPECIFIC --- */
+        #plinko-wrapper {
+            width: 100%;
+            height: 100%;
+            max-width: 600px; /* Desktop constraint */
+            position: relative;
+        }
+        canvas { width: 100%; height: 100%; display: block; }
+        
+        .game-stats {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 12px;
+            color: var(--text-sub);
+            background: rgba(0,0,0,0.5);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        /* --- MINES SPECIFIC --- */
+        #mines-wrapper {
+            display: none;
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .mines-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .mines-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            width: 100%;
+            aspect-ratio: 1/1; /* Keeps it square */
+        }
+
+        .tile {
+            background: #2f4553;
+            border-radius: 8px;
+            border-bottom: 4px solid #1a2c38;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.2s;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+        }
+
+        .tile:active { transform: translateY(2px); border-bottom-width: 2px; }
+        .tile.revealed { transform: none; border-bottom: none; background: #071018; cursor: default; }
+        
+        .tile.gem { border: 2px solid var(--accent); box-shadow: 0 0 10px rgba(0, 231, 1, 0.2); }
+        .tile.bomb { border: 2px solid var(--danger); background: rgba(255, 73, 73, 0.1); }
+        .tile.dim { opacity: 0.3; }
+
+        /* Utility */
+        .hidden { display: none !important; }
+        .visible { display: flex !important; }
+
+        /* --- ANIMATIONS --- */
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .icon-anim { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">STAKE<span style="color:var(--accent)">.CLONE</span></div>
+        <div class="wallet">
+            <span style="color: #b1bad3; font-weight:600;">$</span> 
+            <span id="balance-display">1,000.00</span>
+        </div>
+    </header>
+
+    <div class="nav-tabs">
+        <div class="tab active" onclick="setGame('plinko')" id="tab-plinko">Plinko</div>
+        <div class="tab" onclick="setGame('mines')" id="tab-mines">Mines</div>
+    </div>
+
+    <div class="main-layout">
+        
+        <!-- GAME AREA -->
+        <div class="game-container">
+            
+            <!-- Plinko Canvas -->
+            <div id="plinko-wrapper">
+                <canvas id="plinkoCanvas"></canvas>
+            </div>
+
+            <!-- Mines Grid -->
+            <div id="mines-wrapper">
+                <div class="mines-header">
+                    <span style="color:var(--text-sub)">Next: <span id="mines-next" style="color:var(--accent)">1.13x</span></span>
+                    <span style="color:var(--text-sub)">Mines: <span id="mines-count-display" style="color:white">3</span></span>
+                </div>
+                <div class="mines-grid" id="minesGrid">
+                    <!-- JS Generated -->
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTROLS -->
+        <div class="controls-container">
+            
+            <!-- Bet Amount -->
+            <div class="control-group">
+                <div class="label-row">
+                    <label>Bet Amount</label>
+                    <label id="error-msg" style="color:var(--danger); display:none;">Insufficient Funds</label>
+                </div>
+                <div class="input-box">
+                    <input type="number" id="betInput" value="10.00" inputmode="decimal">
+                    <button class="btn-mod" onclick="adjBet(0.5)">½</button>
+                    <button class="btn-mod" onclick="adjBet(2)">2x</button>
+                </div>
+            </div>
+
+            <!-- Plinko Specific Controls -->
+            <div id="ctrl-plinko" class="visible">
+                <div class="control-group">
+                    <label>Risk</label>
+                    <div class="input-box">
+                        <select id="plinkoRisk" onchange="initPlinko()">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label>Rows</label>
+                    <div class="input-box">
+                        <select id="plinkoRows" onchange="initPlinko()">
+                            <option value="8">8</option>
+                            <option value="10">10</option>
+                            <option value="12">12</option>
+                            <option value="14">14</option>
+                            <option value="16" selected>16</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn-action" onclick="dropBall()">Bet</button>
+            </div>
+
+            <!-- Mines Specific Controls -->
+            <div id="ctrl-mines" class="hidden" style="flex-direction: column; gap: 10px;">
+                <div class="control-group">
+                    <label>Mines Count</label>
+                    <div class="input-box">
+                        <select id="minesCountInput">
+                            <option value="1">1</option>
+                            <option value="3" selected>3</option>
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="btn-mine-start" class="btn-action" onclick="startMines()">Bet</button>
+                <button id="btn-mine-cashout" class="btn-action btn-cashout hidden" onclick="cashoutMines()">Cashout</button>
+            </div>
+
+        </div>
+    </div>
+
+<script>
+/* --- CORE SYSTEM --- */
+let balance = 1000.00;
+let currentGame = 'plinko';
+const domBal = document.getElementById('balance-display');
+const domBet = document.getElementById('betInput');
+const domErr = document.getElementById('error-msg');
+
+function updateBal(val) {
+    balance += val;
+    domBal.textContent = balance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+function adjBet(mult) {
+    let val = parseFloat(domBet.value) * mult;
+    if(val < 0.01) val = 0.01;
+    domBet.value = val.toFixed(2);
+}
+
+function setGame(name) {
+    currentGame = name;
+    
+    // Toggle Tabs
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-'+name).classList.add('active');
+
+    // Toggle Controls
+    document.getElementById('ctrl-plinko').classList.toggle('visible', name === 'plinko');
+    document.getElementById('ctrl-plinko').classList.toggle('hidden', name !== 'plinko');
+    document.getElementById('ctrl-mines').classList.toggle('visible', name === 'mines');
+    document.getElementById('ctrl-mines').classList.toggle('hidden', name !== 'mines');
+
+    // Toggle Game View
+    const pView = document.getElementById('plinko-wrapper');
+    const mView = document.getElementById('mines-wrapper');
+
+    if(name === 'plinko') {
+        pView.style.display = 'block';
+        mView.style.display = 'none';
+        resizePlinko();
+    } else {
+        pView.style.display = 'none';
+        mView.style.display = 'flex';
+        if(!minesActive) initMinesGrid();
+    }
+}
+
+/* --- AUDIO SYSTEM (Optional polish) --- */
+const audCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playTone(freq, type, dur) {
+    if(audCtx.state === 'suspended') audCtx.resume();
+    const osc = audCtx.createOscillator();
+    const gain = audCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, audCtx.currentTime);
+    gain.gain.setValueAtTime(0.1, audCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audCtx.currentTime + dur);
+    osc.connect(gain);
+    gain.connect(audCtx.destination);
+    osc.start();
+    osc.stop(audCtx.currentTime + dur);
+}
+
+/* --- PLINKO ENGINE --- */
+const canvas = document.getElementById('plinkoCanvas');
+const ctx = canvas.getContext('2d');
+let pEngine = { width: 0, height: 0, pegs: [], buckets: [], balls: [] };
+
+// Multipliers (Simplified)
+const MULTIPLIERS = {
+    low: { 16: [16, 9, 2, 1.4, 1.4, 1.2, 1.1, 1, 0.5, 1, 1.1, 1.2, 1.4, 1.4, 2, 9, 16] },
+    medium: { 16: [110, 41, 10, 5, 3, 1.5, 1, 0.5, 0.3, 0.5, 1, 1.5, 3, 5, 10, 41, 110] },
+    high: { 16: [1000, 130, 26, 9, 4, 2, 0.2, 0.2, 0.2, 0.2, 0.2, 2, 4, 9, 26, 130, 1000] }
+};
+
+// Procedural fallback for other row counts
+function getMults(risk, rows) {
+    if(MULTIPLIERS[risk] && MULTIPLIERS[risk][rows]) return MULTIPLIERS[risk][rows];
+    // Fallback generator
+    const count = parseInt(rows) + 1;
+    let arr = [];
+    const center = Math.floor(count/2);
+    for(let i=0; i<count; i++) {
+        let dist = Math.abs(i - center);
+        let val = Math.max(0.2, Math.pow(dist, risk==='high'?2.5:1.5) * 0.3).toFixed(1);
+        arr.push(parseFloat(val));
+    }
+    return arr;
+}
+
+function initPlinko() {
+    const rows = parseInt(document.getElementById('plinkoRows').value);
+    const risk = document.getElementById('plinkoRisk').value;
+    
+    pEngine.pegs = [];
+    pEngine.buckets = [];
+    
+    const padTop = 40;
+    const padBot = 40;
+    const availHeight = pEngine.height - padTop - padBot;
+    
+    // Calculate Spacing
+    // We need rows + 1 spaces vertically
+    const gap = Math.min(availHeight / (rows + 2), pEngine.width / (rows + 3));
+    
+    // Build Pegs
+    for(let r=0; r<rows; r++) {
+        for(let c=0; c<=r+2; c++) {
+            // Center the pyramid
+            const rowW = (r+2) * gap;
+            const x = (pEngine.width - rowW)/2 + (c * gap);
+            const y = padTop + (r * gap);
+            pEngine.pegs.push({x, y, r: 3});
+        }
+    }
+
+    // Build Buckets
+    const mults = getMults(risk, rows);
+    const lastRowY = padTop + (rows * gap);
+    // Buckets sit under the gaps of the last row
+    // The last row has (rows+2) pegs, creating (rows+1) gaps.
+    // We align buckets to these gaps.
+    const lastRowW = (rows+2) * gap;
+    const startX = (pEngine.width - lastRowW)/2;
+    
+    for(let i=0; i<mults.length; i++) {
+        // Center of gap i is between peg i and peg i+1 of last row
+        let x = startX + (i * gap) + (gap); 
+        // Note: The math above aligns with the peg gaps.
+        
+        let val = mults[i];
+        let color = val < 1 ? '#213743' : val < 3 ? '#304452' : val < 10 ? '#00e701' : '#ffa500';
+        let txtColor = val < 1 ? '#b1bad3' : val >= 10 ? '#000' : '#fff';
+        
+        pEngine.buckets.push({
+            x: x - (gap/2) + 2, // Adjust for rect drawing
+            y: lastRowY + 15,
+            w: gap - 4,
+            h: 25,
+            val: val,
+            color: color,
+            txtColor: txtColor,
+            active: 0
+        });
+    }
+}
+
+function resizePlinko() {
+    const cont = document.getElementById('plinko-wrapper');
+    canvas.width = cont.clientWidth;
+    canvas.height = cont.clientHeight;
+    pEngine.width = canvas.width;
+    pEngine.height = canvas.height;
+    initPlinko();
+}
+window.addEventListener('resize', () => {
+    if(currentGame === 'plinko') resizePlinko();
+});
+
+function dropBall() {
+    const amt = parseFloat(domBet.value);
+    if(amt > balance) { domErr.style.display = 'block'; setTimeout(()=>domErr.style.display='none', 2000); return; }
+    updateBal(-amt);
+    
+    const rows = parseInt(document.getElementById('plinkoRows').value);
+    
+    // Calculate Path Result immediately (Client-side "Provably Fair" simulation)
+    let bucketIdx = 0;
+    let pathSteps = []; // 0 = left, 1 = right
+    for(let i=0; i<rows; i++) {
+        let dir = Math.random() > 0.5 ? 1 : 0;
+        bucketIdx += dir;
+        pathSteps.push(dir);
+    }
+    
+    // Spawn Physics Ball
+    // Visual Path construction:
+    // We interpolate positions between rows based on the pathSteps.
+    // Start at top center
+    
+    // Get spacing from first two pegs of row 0
+    const p0 = pEngine.pegs[0];
+    const p1 = pEngine.pegs[1]; // Wait, row 0 has pegs 0,1,2. 
+    // Logic in init: row 0 has c=0..2 (3 pegs). 
+    // The ball drops between peg 0 and peg 1? Or center?
+    // Usually Plinko starts single point. My Init creates a pyramid flat top.
+    // Let's assume spawn is center of canvas, slightly above row 0.
+    
+    let startX = pEngine.width / 2;
+    let startY = pEngine.pegs[0].y - 20;
+    
+    let pathNodes = [{x: startX, y: startY}];
+    
+    // Find exact peg coordinates for visual collisions
+    // My peg logic: array index is tricky. Re-calculate based on geometry.
+    // Gap was calculated in initPlinko, but hard to access scope.
+    // Let's reverse engineer gap from buckets width.
+    const gap = pEngine.buckets[0].w + 4;
+    
+    let currX = startX;
+    let currY = startY + 20; // Row 0 Y
+    
+    for(let r=0; r<rows; r++) {
+        // Move down
+        currY += gap;
+        
+        // Move Left/Right (jittered)
+        // 0 = Left (-0.5 gap), 1 = Right (+0.5 gap)
+        // Visual drift:
+        let dir = pathSteps[r] === 0 ? -0.5 : 0.5;
+        currX += (dir * gap);
+        
+        // Add randomness
+        let jitter = (Math.random() - 0.5) * (gap * 0.3);
+        pathNodes.push({x: currX + jitter, y: currY});
+    }
+    
+    // Final Node: Bucket Center
+    let destBucket = pEngine.buckets[bucketIdx];
+    pathNodes.push({x: destBucket.x + destBucket.w/2, y: destBucket.y});
+
+    pEngine.balls.push({
+        x: startX, y: startY,
+        path: pathNodes,
+        idx: 0,
+        bet: amt,
+        bIdx: bucketIdx,
+        dead: false
+    });
+}
+
+function animPlinko() {
+    ctx.clearRect(0,0, pEngine.width, pEngine.height);
+    
+    // Draw Pegs
+    ctx.fillStyle = 'white';
+    for(let p of pEngine.pegs) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2.5, 0, Math.PI*2);
+        ctx.fill();
+    }
+    
+    // Draw Buckets
+    ctx.font = "bold 11px -apple-system, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    
+    for(let b of pEngine.buckets) {
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.beginPath();
+        ctx.roundRect(b.x, b.y+4, b.w, b.h, 4);
+        ctx.fill();
+        
+        // Main Body
+        ctx.fillStyle = b.active > 0 ? '#fff' : b.color;
+        // Bounce animation
+        let offY = b.active > 0 ? 2 : 0;
+        if(b.active > 0) b.active--;
+        
+        ctx.beginPath();
+        ctx.roundRect(b.x, b.y + offY, b.w, b.h, 4);
+        ctx.fill();
+        
+        // Text
+        ctx.fillStyle = b.active > 5 ? '#000' : b.txtColor;
+        ctx.fillText(b.val + 'x', b.x + b.w/2, b.y + offY + b.h/2 + 1);
+    }
+    
+    // Draw Balls
+    for(let i=pEngine.balls.length-1; i>=0; i--) {
+        let b = pEngine.balls[i];
+        
+        // Lerp
+        let target = b.path[b.idx];
+        let dx = target.x - b.x;
+        let dy = target.y - b.y;
+        let dist = Math.sqrt(dx*dx + dy*dy);
+        
+        let speed = 10 + (b.idx * 0.5); // Accelerate slightly
+        
+        if(dist < speed) {
+            b.idx++;
+            if(b.idx >= b.path.length) {
+                // Hit Bucket
+                let bucket = pEngine.buckets[b.bIdx];
+                bucket.active = 10; // Frames of flash
+                
+                let win = b.bet * bucket.val;
+                updateBal(win);
+                if(bucket.val >= 10) playTone(800, 'sine', 0.2); // High win sound
+                else if(bucket.val < 1) playTone(200, 'sawtooth', 0.1); // Loss thud
+                else playTone(400, 'sine', 0.1);
+                
+                pEngine.balls.splice(i, 1);
+                continue;
+            }
+        } else {
+            b.x += (dx/dist) * speed;
+            b.y += (dy/dist) * speed;
+        }
+        
+        // Ball Graphics
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 5, 0, Math.PI*2);
+        ctx.fillStyle = '#ffeb3b';
+        ctx.shadowColor = '#ffeb3b';
+        ctx.shadowBlur = 10;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+    
+    requestAnimationFrame(animPlinko);
+}
+requestAnimationFrame(animPlinko);
+
+
+/* --- MINES ENGINE --- */
+let minesActive = false;
+let minesGrid = []; // 0=gem, 1=mine
+let mineBet = 0;
+let revealed = 0;
+let mineCount = 3;
+
+function initMinesGrid() {
+    const grid = document.getElementById('minesGrid');
+    grid.innerHTML = '';
+    minesActive = false;
+    document.getElementById('mines-next').textContent = '---';
+    document.getElementById('btn-mine-start').classList.remove('hidden');
+    document.getElementById('btn-mine-cashout').classList.add('hidden');
+    
+    // Disable inputs? No, keep enabled until start
+    document.querySelectorAll('.tile').forEach(t => t.remove());
+    
+    for(let i=0; i<25; i++) {
+        let t = document.createElement('div');
+        t.className = 'tile';
+        t.onclick = () => clickTile(i, t);
+        grid.appendChild(t);
+    }
+}
+
+function startMines() {
+    const amt = parseFloat(domBet.value);
+    if(amt > balance) { domErr.style.display = 'block'; return; }
+    updateBal(-amt);
+    mineBet = amt;
+    
+    minesActive = true;
+    mineCount = parseInt(document.getElementById('minesCountInput').value);
+    revealed = 0;
+    document.getElementById('mines-count-display').textContent = mineCount;
+    
+    // Generate Logic
+    minesGrid = Array(25).fill(0);
+    let placed = 0;
+    while(placed < mineCount) {
+        let r = Math.floor(Math.random()*25);
+        if(minesGrid[r] === 0) { minesGrid[r] = 1; placed++; }
+    }
+    
+    // UI Update
+    document.getElementById('btn-mine-start').classList.add('hidden');
+    document.getElementById('btn-mine-cashout').classList.remove('hidden');
+    
+    // Reset visuals
+    document.querySelectorAll('.tile').forEach(t => {
+        t.className = 'tile';
+        t.innerHTML = '';
+    });
+    
+    calcMineStats();
+    playTone(600, 'triangle', 0.1);
+}
+
+function calcMineStats() {
+    // Probability Math
+    // Next Mult = Current Total / Probability of Safe
+    // Simplified loop:
+    let m = 1.0;
+    for(let i=0; i<revealed; i++) {
+        let rem = 25 - i;
+        let safe = 25 - mineCount - i;
+        m *= (rem/safe);
+    }
+    // Next step
+    let nextM = m * ((25-revealed) / (25-mineCount-revealed));
+    // House Edge 1%
+    m *= 0.99;
+    nextM *= 0.99;
+    
+    // If 0 revealed, curr is 1 (but technically 0 cashout). 
+    let currWin = mineBet * m;
+    if(revealed === 0) currWin = mineBet; // Can't cashout initial bet usually, but let's display logic
+    
+    const btn = document.getElementById('btn-mine-cashout');
+    btn.innerHTML = `Cashout $${currWin.toFixed(2)} <div style='font-size:10px; opacity:0.7'>${m.toFixed(2)}x</div>`;
+    
+    document.getElementById('mines-next').textContent = nextM.toFixed(2) + 'x';
+}
+
+function clickTile(idx, el) {
+    if(!minesActive || el.classList.contains('revealed')) return;
+    
+    el.classList.add('revealed');
+    
+    if(minesGrid[idx] === 1) {
+        // Boom
+        el.classList.add('bomb');
+        el.innerHTML = '<div class="icon-anim">💣</div>';
+        playTone(150, 'sawtooth', 0.4); // Deep boom
+        endMines(false);
+    } else {
+        // Gem
+        el.classList.add('gem');
+        el.innerHTML = '<div class="icon-anim">💎</div>';
+        playTone(1200 + (revealed*100), 'sine', 0.1); // Rising pitch
+        revealed++;
+        
+        if(revealed === 25 - mineCount) {
+            cashoutMines();
+        } else {
+            calcMineStats();
+        }
+    }
+}
+
+function cashoutMines() {
+    if(!minesActive) return;
+    minesActive = false;
+    
+    // Calc final win
+    let m = 1.0;
+    for(let i=0; i<revealed; i++) {
+        let rem = 25 - i;
+        let safe = 25 - mineCount - i;
+        m *= (rem/safe);
+    }
+    m *= 0.99;
+    
+    let win = mineBet * m;
+    updateBal(win);
+    
+    playTone(1000, 'square', 0.1);
+    playTone(1500, 'square', 0.1);
+    
+    endMines(true);
+}
+
+function endMines(win) {
+    minesActive = false;
+    document.getElementById('btn-mine-start').classList.remove('hidden');
+    document.getElementById('btn-mine-cashout').classList.add('hidden');
+    document.getElementById('mines-next').textContent = win ? 'WIN' : 'BUST';
+    
+    // Reveal rest
+    minesGrid.forEach((isMine, i) => {
+        const t = document.getElementById('minesGrid').children[i];
+        if(!t.classList.contains('revealed')) {
+            t.classList.add('dim');
+            t.classList.add('revealed');
+            if(isMine) t.innerHTML = '💣';
+            else t.innerHTML = '💎';
+        }
+    });
+}
+
+// Initial Boot
+setGame('plinko');
+
+</script>
+</body>
+</html>
