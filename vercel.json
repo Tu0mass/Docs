@@ -1,0 +1,16 @@
+// vercel.json
+{
+  "version": 3,
+  "builds": [
+    {
+      "src": "api/cards.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/cards",
+      "dest": "/api/cards.js"
+    }
+  ]
+}
